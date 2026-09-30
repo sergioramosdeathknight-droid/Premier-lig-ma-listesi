@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Premier Lig takım takip - puan grafikleri ve maç sonuçları">
+<meta name="theme-color" content="#0f172a">
+<title>⚽ Premier Lig Takım Takip</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --arka-plan: #0a0f1c;
+  --arka-plan-2: #0f172a;
+  --kart: #1e293b;
+  --kart-hover: #243349;
+  --sinir: #334155;
+  --sinir-acik: #475569;
+  --kirmizi: #dc2626;
+  --kirmizi-acik: #ef4444;
+  --kirmizi-koyu: #991b1b;
+  --sari: #facc15;
+  --mavi: #38bdf8;
+  --mavi-koyu: #0ea5e9;
+  --yesil: #4ade80;
+  --yesil-koyu: #22c55e;
+  --turuncu: #f97316;
+  --metin-beyaz: #f8fafc;
+  --metin-acik: #e2e8f0;
+  --metin-gri: #94a3b8;
+  --metin-gri-koyu: #64748b;
+  --golge: 0 8px 24px rgba(0,0,0,0.35);
+  --yuvarlak: 12px;
+  --yuvarlak-buyuk: 16px;
+  --yuvarlak-tam: 9999px;
+  --gecis: 0.3s ease;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--arka-plan);
+  color:var(--metin-acik);
+  min-height:100vh;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(220,38,38,0.07) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(56,189,248,0.05) 0%, transparent 45%);
+  background-attachment:fixed;
+}
+::-webkit-scrollbar { width:8px; height:8px; }
+::-webkit-scrollbar-track { background:var(--arka-plan-2); }
+::-webkit-scrollbar-thumb { background:var(--sinir); border-radius:var(--yuvarlak-tam); }
+::-webkit-scrollbar-thumb:hover { background:var(--sinir-acik); }
+
+header {
+  position:relative;
+  padding:2rem 1rem 1.25rem;
+  text-align:center;
+  overflow:hidden;
+}
+header::before {
+  content:'';
+  position:absolute;
+  top:-50%; left:-50%;
+  width:200%; height:200%;
+  background:radial-gradient(circle at 50% 50%, rgba(220,38,38,0.12), transparent 60%);
+  animation:donus 30s linear infinite;
+  pointer-events:none;
+}
+@keyframes donus { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+header > * { position:relative; z-index:1; }
+
+h1 {
+  font-size:clamp(1.4rem,3.5vw,2rem);
+  font-weight:900;
+  letter-spacing:-0.5px;
+  background:linear-gradient(135deg,#fff,var(--mavi),var(--kirmizi-acik));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:0.2rem;
+}
+.alt-baslik { color:var(--metin-gri); font-size:0.85rem; }
+.sezon-rozet {
+  display:inline-block;
+  margin-top:0.6rem;
+  padding:0.3rem 0.9rem;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.3);
+  border-radius:var(--yuvarlak-tam);
+  color:var(--mavi);
+  font-size:0.75rem;
+  font-weight:700;
+  letter-spacing:1px;
+}
+
+.bolum {
+  max-width:1100px;
+  margin:0 auto 1.5rem;
+  padding:0 1rem;
+}
+.bolum-ust {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:0.75rem;
+  padding-bottom:0.4rem;
+  border-bottom:1px solid var(--sinir);
+  flex-wrap:wrap;
+  gap:0.5rem;
+}
+.bolum-baslik {
+  font-size:1.1rem;
+  font-weight:800;
+  color:var(--metin-beyaz);
+}
+.puan-durum-buton {
+  padding:0.45rem 1rem;
+  border-radius:var(--yuvarlak-tam);
+  background:linear-gradient(135deg, rgba(250,204,21,0.15), rgba(249,115,22,0.15));
+  border:1px solid rgba(250,204,21,0.4);
+  color:var(--sari);
+  font-size:0.8rem;
+  font-weight:700;
+  display:inline-flex;
+  align-items:center;
+  gap:0.4rem;
+  transition:all var(--gecis);
+  cursor:pointer;
+}
+.puan-durum-buton:hover {
+  background:linear-gradient(135deg, rgba(250,204,21,0.25), rgba(249,115,22,0.25));
+  border-color:var(--sari);
+  transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(250,204,21,0.25);
+}
+.puan-durum-buton.aktif {
+  background:linear-gradient(135deg, var(--sari), var(--turuncu));
+  color:#0a0f1c;
+  border-color:transparent;
+}
+
+/* TAKIM BALONCUKLARI */
+.balon-alan {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+  gap:0.4rem;
+  padding:0.5rem 0;
+}
+.balon {
+  position:relative;
+  padding:0.4rem 0.6rem;
+  border-radius:8px;
+  background:var(--kart);
+  border:1px solid var(--sinir);
+  color:var(--metin-acik);
+  font-size:0.75rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  user-select:none;
+  text-align:center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.balon:hover {
+  transform:translateY(-2px);
+  border-color:var(--mavi);
+  color:var(--metin-beyaz);
+  background:var(--kart-hover);
+}
+.balon.aktif {
+  background:linear-gradient(135deg,var(--kirmizi),var(--kirmizi-koyu));
+  border-color:var(--kirmizi-acik);
+  color:#fff;
+  box-shadow:0 4px 16px rgba(220,38,38,0.35);
+}
+
+/* PUAN DURUMU TABLOSU */
+.puan-tablo-alan {
+  display:none;
+  background:var(--kart);
+  border-radius:var(--yuvarlak-buyuk);
+  padding:1rem;
+  border:1px solid var(--sinir);
+  box-shadow:var(--golge);
+  margin-bottom:1.5rem;
+  overflow-x:auto;
+}
+.puan-tablo-alan.acik { display:block; animation:acilma 0.3s ease; }
+@keyframes acilma {
+  from { opacity:0; transform:translateY(-10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.puan-tablo {
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.8rem;
+  min-width:640px;
+}
+.puan-tablo thead th {
+  padding:0.6rem 0.4rem;
+  text-align:center;
+  font-size:0.7rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  color:var(--metin-gri);
+  border-bottom:2px solid var(--sinir);
+  background:rgba(10,15,28,0.4);
+}
+.puan-tablo thead th:first-child { border-top-left-radius:8px; }
+.puan-tablo thead th:last-child { border-top-right-radius:8px; }
+.puan-tablo thead th.takim-sutun { text-align:left; padding-left:0.75rem; }
+.puan-tablo tbody tr {
+  border-bottom:1px solid rgba(51,65,85,0.5);
+  transition:background var(--gecis);
+}
+.puan-tablo tbody tr:hover { background:var(--kart-hover); }
+.puan-tablo tbody td {
+  padding:0.6rem 0.4rem;
+  text-align:center;
+  color:var(--metin-acik);
+  font-weight:600;
+}
+.puan-tablo tbody td.takim-hucresi {
+  text-align:left;
+  padding-left:0.75rem;
+  color:var(--metin-beyaz);
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.sira-rozet {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px; height:24px;
+  border-radius:6px;
+  font-size:0.7rem;
+  font-weight:900;
+  flex-shrink:0;
+}
+.sira-sampiyonlar { background:rgba(56,189,248,0.2); color:var(--mavi); border-left:3px solid var(--mavi); }
+.sira-avrupa { background:rgba(74,222,128,0.15); color:var(--yesil); border-left:3px solid var(--yesil); }
+.sira-konferans { background:rgba(167,139,250,0.15); color:#a78bfa; border-left:3px solid #a78bfa; }
+.sira-normal { background:rgba(148,163,184,0.1); color:var(--metin-gri); }
+.sira-dusme { background:rgba(239,68,68,0.15); color:var(--kirmizi-acik); border-left:3px solid var(--kirmizi-acik); }
+
+.puan-tablo .puan-hucresi {
+  font-weight:900;
+  color:var(--sari);
+  font-size:0.9rem;
+}
+.puan-tablo .form-mini {
+  display:flex;
+  gap:2px;
+  justify-content:center;
+}
+.form-nokta {
+  width:16px; height:16px;
+  border-radius:4px;
+  font-size:0.6rem;
+  font-weight:900;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:#0a0f1c;
+}
+.form-g { background:var(--yesil); }
+.form-b { background:var(--sari); }
+.form-m { background:var(--kirmizi-acik); color:#fff; }
+
+.lejant {
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.75rem;
+  margin-top:0.75rem;
+  padding-top:0.75rem;
+  border-top:1px solid var(--sinir);
+  font-size:0.7rem;
+  color:var(--metin-gri);
+}
+.lejant span { display:inline-flex; align-items:center; gap:0.3rem; }
+.lejant .kutu {
+  width:12px; height:12px;
+  border-radius:3px;
+}
+
+/* TAKIM BAŞLIĞI */
+.takim-baslik {
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  margin-bottom:1rem;
+  padding:1rem 1.25rem;
+  background:var(--kart);
+  border-radius:var(--yuvarlak-buyuk);
+  border-left:5px solid var(--kirmizi);
+  box-shadow:var(--golge);
+}
+.takim-logo {
+  width:48px; height:48px;
+  border-radius:50%;
+  background:linear-gradient(145deg,var(--kirmizi),var(--kirmizi-koyu));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.2rem;
+  font-weight:900;
+  color:#fff;
+  border:2px solid rgba(255,255,255,0.1);
+  flex-shrink:0;
+}
+.takim-isim {
+  font-size:1.25rem;
+  font-weight:900;
+  color:var(--metin-beyaz);
+}
+.takim-stats-mini {
+  display:flex;
+  gap:0.75rem;
+  margin-top:0.2rem;
+  font-size:0.75rem;
+  color:var(--metin-gri);
+  flex-wrap:wrap;
+}
+.takim-stats-mini span strong { color:var(--sari); }
+
+/* SIRADAKİ MAÇ KARTI */
+.sonraki-alan { margin-bottom:1rem; }
+.sonraki-etiket {
+  display:inline-flex;
+  align-items:center;
+  gap:0.5rem;
+  font-size:0.7rem;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  font-weight:800;
+  color:var(--sari);
+  background:rgba(250,204,21,0.1);
+  padding:0.4rem 0.9rem;
+  border-radius:var(--yuvarlak-tam);
+  border:1px solid rgba(250,204,21,0.3);
+  margin-bottom:0.6rem;
+  animation:etiketParla 2s ease-in-out infinite;
+}
+@keyframes etiketParla {
+  0%, 100% { box-shadow:0 0 0 0 rgba(250,204,21,0.4); }
+  50%      { box-shadow:0 0 0 8px rgba(250,204,21,0); }
+}
+.sonraki-etiket::before {
+  content:'';
+  width:8px; height:8px;
+  border-radius:50%;
+  background:var(--sari);
+  animation:noktaParla 1.5s ease-in-out infinite;
+}
+@keyframes noktaParla {
+  0%, 100% { opacity:1; }
+  50%      { opacity:0.3; }
+}
+
+.sonraki-kart {
+  background:linear-gradient(145deg, #1a2338, #0f172a);
+  border-radius:var(--yuvarlak-buyuk);
+  padding:1.25rem;
+  border:2px solid var(--sari);
+  box-shadow:0 0 40px rgba(250,204,21,0.15), var(--golge);
+  position:relative;
+  overflow:hidden;
+  animation:kartParla 3s ease-in-out infinite;
+}
+@keyframes kartParla {
+  0%, 100% { box-shadow:0 0 40px rgba(250,204,21,0.15), var(--golge); }
+  50%      { box-shadow:0 0 60px rgba(250,204,21,0.3), var(--golge); }
+}
+.sonraki-kart::before {
+  content:'';
+  position:absolute;
+  top:0; left:-100%;
+  width:100%; height:100%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation:parlama 4s linear infinite;
+  pointer-events:none;
+}
+@keyframes parlama {
+  0%   { left:-100%; }
+  100% { left:200%; }
+}
+
+.sonraki-icerik {
+  display:flex;
+  align-items:center;
+  gap:1.25rem;
+  flex-wrap:wrap;
+  position:relative;
+  z-index:1;
+}
+
+.sonraki-tarih {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-width:100px;
+  padding:0.75rem 0.9rem;
+  background:linear-gradient(145deg, #0a0f1c, #1a2338);
+  border-radius:var(--yuvarlak);
+  border:1px solid var(--sari);
+  position:relative;
+  overflow:hidden;
+}
+.sonraki-tarih::after {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:linear-gradient(90deg, var(--sari), var(--mavi));
+}
+.sonraki-gun {
+  font-size:2rem;
+  font-weight:900;
+  color:var(--sari);
+  line-height:1;
+  text-shadow:0 0 16px rgba(250,204,21,0.4);
+  letter-spacing:-1px;
+}
+.sonraki-ay {
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  color:var(--metin-gri);
+  font-weight:700;
+  margin-top:0.2rem;
+}
+.sonraki-saat {
+  font-size:0.9rem;
+  font-weight:800;
+  color:var(--mavi);
+  margin-top:0.35rem;
+  background:rgba(56,189,248,0.12);
+  padding:0.15rem 0.6rem;
+  border-radius:6px;
+}
+
+.sonraki-bilgi { flex:1; min-width:200px; }
+.sonraki-takimlar {
+  font-size:1.15rem;
+  font-weight:900;
+  color:var(--metin-beyaz);
+  margin-bottom:0.3rem;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  flex-wrap:wrap;
+}
+.sonraki-takimlar .evdep {
+  font-size:0.7rem;
+  padding:0.15rem 0.5rem;
+  background:rgba(56,189,248,0.15);
+  border:1px solid rgba(56,189,248,0.3);
+  border-radius:var(--yuvarlak-tam);
+  color:var(--mavi);
+  font-weight:700;
+}
+.sonraki-turnuva {
+  font-size:0.75rem;
+  color:var(--metin-gri);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  font-weight:600;
+  margin-bottom:0.5rem;
+}
+.sonraki-tam-tarih {
+  font-size:0.8rem;
+  color:var(--metin-gri);
+  margin-bottom:0.75rem;
+}
+
+.geri-sayim { display:flex; gap:0.4rem; flex-wrap:wrap; }
+.gs-birim {
+  background:rgba(10,15,28,0.8);
+  border:1px solid var(--sinir);
+  border-radius:8px;
+  padding:0.4rem 0.7rem;
+  text-align:center;
+  min-width:52px;
+}
+.gs-sayi {
+  display:block;
+  font-size:1.1rem;
+  font-weight:900;
+  color:var(--sari);
+  line-height:1;
+}
+.gs-etiket {
+  display:block;
+  font-size:0.6rem;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:var(--metin-gri);
+  margin-top:0.2rem;
+}
+
+/* GRAFİK */
+.grafik-alan {
+  background:var(--kart);
+  border-radius:var(--yuvarlak-buyuk);
+  padding:1.25rem;
+  margin-bottom:1rem;
+  border:1px solid var(--sinir);
+  box-shadow:var(--golge);
+}
+.grafik-baslik {
+  font-size:0.95rem;
+  font-weight:700;
+  color:var(--metin-beyaz);
+  margin-bottom:0.75rem;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:0.5rem;
+}
+.grafik-baslik small { color:var(--metin-gri); font-weight:500; font-size:0.75rem; }
+.chart-container { position:relative; height:300px; width:100%; }
+
+/* MAÇ LİSTESİ + FİLTRE */
+.mac-liste-ust {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:0.75rem;
+  flex-wrap:wrap;
+  gap:0.5rem;
+}
+.mac-filtre-grup {
+  display:flex;
+  gap:0.35rem;
+  flex-wrap:wrap;
+}
+.mac-filtre-btn {
+  padding:0.4rem 0.85rem;
+  border-radius:var(--yuvarlak-tam);
+  background:var(--kart-hover);
+  border:1px solid var(--sinir);
+  color:var(--metin-gri);
+  font-size:0.75rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:all var(--gecis);
+  display:inline-flex;
+  align-items:center;
+  gap:0.3rem;
+}
+.mac-filtre-btn:hover {
+  border-color:var(--mavi);
+  color:var(--metin-beyaz);
+  transform:translateY(-1px);
+}
+.mac-filtre-btn.aktif {
+  background:linear-gradient(135deg, var(--mavi), var(--mavi-koyu));
+  color:#0a0f1c;
+  border-color:transparent;
+  box-shadow:0 4px 12px rgba(56,189,248,0.3);
+}
+.mac-filtre-btn .sayac {
+  font-size:0.65rem;
+  padding:0.05rem 0.4rem;
+  border-radius:var(--yuvarlak-tam);
+  background:rgba(10,15,28,0.4);
+  font-weight:800;
+}
+.mac-filtre-btn.aktif .sayac {
+  background:rgba(10,15,28,0.25);
+}
+
+.mac-listesi { display:flex; flex-direction:column; gap:0.5rem; }
+.mac-kart {
+  background:var(--kart);
+  border-radius:var(--yuvarlak);
+  padding:0.75rem 1rem;
+  display:flex;
+  align-items:center;
+  gap:0.75rem;
+  border-left:4px solid var(--mavi);
+  transition:all var(--gecis);
+  flex-wrap:wrap;
+}
+.mac-kart:hover { transform:translateX(4px); box-shadow:var(--golge); }
+.mac-kart.bitti { border-left-color:var(--yesil-koyu); }
+.mac-kart.magbubiyet { border-left-color:var(--kirmizi); }
+.mac-kart.berabere { border-left-color:var(--sari); }
+.mac-kart.gelecek { border-left-color:var(--mavi); }
+.mac-kart.siradaki {
+  border-left-color:var(--sari);
+  background:linear-gradient(90deg, rgba(250,204,21,0.05), var(--kart) 30%);
+}
+.mac-tarih {
+  min-width:70px;
+  text-align:center;
+  font-size:0.7rem;
+  color:var(--metin-gri);
+  font-weight:600;
+}
+.mac-tarih .gun { font-size:1.15rem; font-weight:900; color:var(--metin-beyaz); display:block; line-height:1.1; }
+.mac-takimlar {
+  flex:1;
+  min-width:180px;
+  font-weight:700;
+  color:var(--metin-beyaz);
+  font-size:0.9rem;
+}
+.mac-skor {
+  font-size:1.05rem;
+  font-weight:900;
+  padding:0.25rem 0.7rem;
+  border-radius:8px;
+  min-width:55px;
+  text-align:center;
+}
+.mac-skor.kazandi { color:var(--yesil); background:rgba(74,222,128,0.1); }
+.mac-skor.kaybetti { color:var(--kirmizi-acik); background:rgba(239,68,68,0.1); }
+.mac-skor.berabere { color:var(--sari); background:rgba(250,204,21,0.1); }
+.mac-puan-rozet {
+  font-size:0.65rem;
+  font-weight:800;
+  padding:0.15rem 0.45rem;
+  border-radius:var(--yuvarlak-tam);
+  margin-left:0.4rem;
+  display:inline-block;
+}
+.mac-puan-rozet.p3 { background:rgba(74,222,128,0.15); color:var(--yesil); }
+.mac-puan-rozet.p1 { background:rgba(250,204,21,0.15); color:var(--sari); }
+.mac-puan-rozet.p0 { background:rgba(239,68,68,0.15); color:var(--kirmizi-acik); }
+.mac-puan-rozet.gelecek { background:rgba(56,189,248,0.15); color:var(--mavi); }
+.mac-puan-rozet.siradaki { background:rgba(250,204,21,0.2); color:var(--sari); animation:noktaParla 1.5s ease-in-out infinite; }
+
+/* YÜKLENİYOR */
+.yukleniyor { text-align:center; padding:2.5rem 1rem; color:var(--metin-gri); }
+.donen {
+  display:inline-block;
+  width:32px; height:32px;
+  border:4px solid var(--sinir);
+  border-top-color:var(--mavi);
+  border-radius:50%;
+  animation:spin 0.9s linear infinite;
+  margin-bottom:0.75rem;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.hata-kutu {
+  max-width:600px;
+  margin:1rem auto;
+  padding:1.25rem;
+  background:rgba(248,113,113,0.08);
+  border:1px solid rgba(248,113,113,0.3);
+  border-radius:var(--yuvarlak);
+  text-align:center;
+  color:#fca5a5;
+}
+.hata-kutu strong { display:block; font-size:1rem; margin-bottom:0.4rem; color:#f87171; }
+.hata-kutu small { display:block; margin-top:0.5rem; color:var(--metin-gri); font-size:0.75rem; }
+
+.bos-kutu {
+  text-align:center;
+  padding:1.5rem;
+  color:var(--metin-gri);
+  background:var(--kart);
+  border-radius:var(--yuvarlak);
+  border:1px dashed var(--sinir);
+  font-size:0.85rem;
+}
+
+footer {
+  text-align:center;
+  padding:1.5rem 1rem;
+  color:var(--metin-gri-koyu);
+  font-size:0.8rem;
+  border-top:1px solid var(--sinir);
+  max-width:1100px;
+  margin:0 auto;
+}
+footer .kalp { color:var(--kirmizi-acik); }
+
+@media (max-width:600px) {
+  .takim-baslik { flex-direction:column; text-align:center; }
+  .takim-stats-mini { justify-content:center; }
+  .mac-kart { flex-direction:column; align-items:stretch; text-align:center; }
+  .mac-tarih { min-width:auto; }
+  .chart-container { height:220px; }
+  .balon-alan { grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); }
+  .balon { font-size:0.7rem; padding:0.35rem 0.5rem; }
+  .sonraki-icerik { gap:0.75rem; }
+  .sonraki-takimlar { font-size:1rem; }
+  .sonraki-gun { font-size:1.6rem; }
+  .gs-birim { min-width:44px; padding:0.3rem 0.5rem; }
+  .gs-sayi { font-size:0.95rem; }
+  .puan-tablo { font-size:0.7rem; min-width:560px; }
+  .puan-tablo tbody td { padding:0.5rem 0.25rem; }
+  .form-nokta { width:14px; height:14px; font-size:0.55rem; }
+  .mac-liste-ust { justify-content:center; }
+  .mac-filtre-grup { width:100%; justify-content:center; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ Premier Lig Takım Takip</h1>
+  <p class="alt-baslik">Takım seç · Puan grafiğini gör · Maç sonuçlarını incele</p>
+  <div class="sezon-rozet" id="sezon-rozet">Sezon yükleniyor...</div>
+</header>
+
+<section class="bolum">
+  <div class="bolum-ust">
+    <div class="bolum-baslik">🏟️ Premier Lig Takımları</div>
+    <button class="puan-durum-buton" id="puan-durum-buton">📊 Lig Puan Durumu</button>
+  </div>
+
+  <div class="puan-tablo-alan" id="puan-tablo-alan">
+    <div id="puan-tablo-icerik">
+      <div class="yukleniyor"><div class="donen"></div><div>Puan durumu yükleniyor...</div></div>
+    </div>
+  </div>
+
+  <div class="balon-alan" id="balon-alan">
+    <div class="yukleniyor"><div class="donen"></div><div>Takımlar yükleniyor...</div></div>
+  </div>
+</section>
+
+<section class="bolum" id="takim-detay-alan" style="display:none;">
+  <div class="takim-baslik" id="takim-baslik"></div>
+
+  <div class="sonraki-alan" id="sonraki-alan" style="display:none;">
+    <div class="sonraki-etiket">⚡ Sıradaki Maç</div>
+    <div class="sonraki-kart" id="sonraki-kart"></div>
+  </div>
+
+  <div class="grafik-alan">
+    <div class="grafik-baslik">
+      <span>📈 Kümülatif Puan Grafiği</span>
+      <small id="grafik-bilgi">Sezon başından itibaren</small>
+    </div>
+    <div class="chart-container">
+      <canvas id="puan-grafigi"></canvas>
+    </div>
+  </div>
+
+  <div class="grafik-alan">
+    <div class="mac-liste-ust">
+      <div class="grafik-baslik" style="margin:0;border:0;padding:0;">
+        <span>📅 Maçlar</span>
+      </div>
+      <div class="mac-filtre-grup">
+        <button class="mac-filtre-btn aktif" data-mfiltre="tumu">
+          📋 Tümü <span class="sayac" id="sayac-tumu">0</span>
+        </button>
+        <button class="mac-filtre-btn" data-mfiltre="gelecek">
+          ⚡ Sıradaki Maçlar <span class="sayac" id="sayac-gelecek">0</span>
+        </button>
+        <button class="mac-filtre-btn" data-mfiltre="gecmis">
+          ✅ Geçmiş Maçlar <span class="sayac" id="sayac-gecmis">0</span>
+        </button>
+      </div>
+    </div>
+    <div class="mac-listesi" id="mac-listesi"></div>
+  </div>
+</section>
+
+<footer>
+  <p>Veriler football-data.org API'sinden alınmaktadır.</p>
+  <p style="margin-top:0.4rem;">Premier Lig tutkunları için <span class="kalp">❤</span> ile yapıldı.</p>
+</footer>
+
+<script>
+'use strict';
+
+/* ===================== YAPILANDIRMA ===================== */
+const API_ANAHTARI = '3a0b429fb0fe4def897486bc5309dafe';
+const API_TABAN = 'https://api.football-data.org/v4';
+const ISTEK_BASLIKLARI = { 'X-Auth-Token': API_ANAHTARI };
+
+const AYLAR_KISA = ['OCA','ŞUB','MAR','NİS','MAY','HAZ','TEM','AĞU','EYL','EKİ','KAS','ARA'];
+
+/* ===================== DURUM ===================== */
+const durum = {
+  takimlar: [],
+  seciliTakim: null,
+  puanGrafik: null,
+  yukleniyor: false,
+  lig: 'PL',
+  sezon: null,
+  sonrakiMac: null,
+  puanTablosuYuklendi: false,
+  puanTabloAcik: false,
+  macFiltre: 'tumu',
+  tumMaclar: [],
+  macPuanlari: {}
+};
+
+/* ===================== YARDIMCILAR ===================== */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+function kacis(m) {
+  if (m === null || m === undefined) return '';
+  return String(m).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function tarihFormatla(t) {
+  if (!t) return { gun:'--', ay:'---', yil:'', tam:'—' };
+  const d = new Date(t);
+  if (isNaN(d.getTime())) return { gun:'--', ay:'---', yil:'', tam:'—' };
+  return {
+    gun: d.getDate().toString().padStart(2,'0'),
+    ay: AYLAR_KISA[d.getMonth()] || '---',
+    yil: d.getFullYear(),
+    tam: d.toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric',weekday:'long'}),
+    saat: d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0')
+  };
+}
+
+function geriSayimHesapla(hedefTarih) {
+  const simdi = Date.now();
+  const hedef = new Date(hedefTarih).getTime();
+  const fark = hedef - simdi;
+  if (fark <= 0) return { gun:0, saat:0, dakika:0, saniye:0, gecti:true };
+  return {
+    gun: Math.floor(fark / 86400000),
+    saat: Math.floor((fark % 86400000) / 3600000),
+    dakika: Math.floor((fark % 3600000) / 60000),
+    saniye: Math.floor((fark % 60000) / 1000),
+    gecti: false
+  };
+}
+
+/* ===================== SEZON ALGILAMA ===================== */
+async function sezonuAlgila() {
+  try {
+    const r = await fetch(`${API_TABAN}/competitions/PL`, { headers: ISTEK_BASLIKLARI });
+    if (r.ok) {
+      const veri = await r.json();
+      const cs = veri.currentSeason;
+      if (cs && cs.startDate) {
+        const basYil = new Date(cs.startDate).getFullYear();
+        durum.sezon = basYil;
+        return basYil;
+      }
+    }
+  } catch (e) { console.warn('Sezon algılanamadı:', e); }
+  return 2025;
+}
+
+/* ===================== PUAN DURUMU ===================== */
+async function puanDurumuGetir() {
+  const icerik = $('#puan-tablo-icerik');
+  icerik.innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Puan durumu yükleniyor...</div></div>';
+
+  try {
+    const url = `${API_TABAN}/competitions/${durum.lig}/standings?season=${durum.sezon}`;
+    const r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+
+    if (!r.ok) {
+      if (r.status === 403) throw new Error('Bu turnuva ücretsiz planda kapsanmıyor (403).');
+      if (r.status === 429) throw new Error('İstek limiti aşıldı (429). Biraz bekleyin.');
+      throw new Error(`API hatası: ${r.status}`);
+    }
+
+    const veri = await r.json();
+    let tablo = null;
+    if (veri.standings && veri.standings.length) {
+      tablo = veri.standings.find(s => s.type === 'TOTAL') || veri.standings[0];
+    }
+
+    if (!tablo || !tablo.table || !tablo.table.length) {
+      icerik.innerHTML = '<div class="bos-kutu">Puan durumu bulunamadı.</div>';
+      return;
+    }
+
+    puanTablosuCiz(tablo.table);
+    durum.puanTablosuYuklendi = true;
+
+  } catch (hata) {
+    console.error(hata);
+    icerik.innerHTML = `<div class="hata-kutu"><strong>❌ Puan durumu yüklenemedi</strong><div>${kacis(hata.message)}</div></div>`;
+  }
+}
+
+function puanTablosuCiz(tablo) {
+  const icerik = $('#puan-tablo-icerik');
+
+  const satirlar = tablo.map(satir => {
+    const sira = satir.position;
+    const takim = satir.team;
+    const isim = kacis(takim.shortName || takim.name || '?');
+    const oynanan = satir.playedGames;
+    const galibiyet = satir.won;
+    const beraberlik = satir.draw;
+    const maglubiyet = satir.lost;
+    const attigi = satir.goalsFor;
+    const yedigi = satir.goalsAgainst;
+    const averaj = satir.goalDifference;
+    const puan = satir.points;
+    const form = satir.form || '';
+
+    let siraSinif = 'sira-normal';
+    if (sira <= 4) siraSinif = 'sira-sampiyonlar';
+    else if (sira === 5) siraSinif = 'sira-avrupa';
+    else if (sira === 6) siraSinif = 'sira-konferans';
+    else if (sira >= 18) siraSinif = 'sira-dusme';
+
+    let formHtml = '';
+    if (form) {
+      const harfler = form.split(',').slice(-5);
+      formHtml = '<div class="form-mini">' + harfler.map(h => {
+        h = h.trim();
+        let sinif = 'form-b', metin = 'B';
+        if (h === 'W') { sinif = 'form-g'; metin = 'G'; }
+        else if (h === 'L') { sinif = 'form-m'; metin = 'M'; }
+        return `<span class="form-nokta ${sinif}">${metin}</span>`;
+      }).join('') + '</div>';
+    } else {
+      formHtml = '<span style="color:var(--metin-gri-koyu);">—</span>';
+    }
+
+    const averajGoster = averaj > 0 ? `+${averaj}` : averaj;
+
+    return `
+      <tr data-takim-id="${takim.id}">
+        <td><span class="sira-rozet ${siraSinif}">${sira}</span></td>
+        <td class="takim-hucresi">${isim}</td>
+        <td>${oynanan}</td>
+        <td>${galibiyet}</td>
+        <td>${beraberlik}</td>
+        <td>${maglubiyet}</td>
+        <td>${attigi}</td>
+        <td>${yedigi}</td>
+        <td>${averajGoster}</td>
+        <td class="puan-hucresi">${puan}</td>
+        <td>${formHtml}</td>
+      </tr>
+    `;
+  }).join('');
+
+  icerik.innerHTML = `
+    <table class="puan-tablo">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th class="takim-sutun">Takım</th>
+          <th>O</th>
+          <th>G</th>
+          <th>B</th>
+          <th>M</th>
+          <th>A</th>
+          <th>Y</th>
+          <th>AV</th>
+          <th>P</th>
+          <th>Form</th>
+        </tr>
+      </thead>
+      <tbody>${satirlar}</tbody>
+    </table>
+    <div class="lejant">
+      <span><span class="kutu" style="background:var(--mavi);"></span> Şampiyonlar Ligi</span>
+      <span><span class="kutu" style="background:var(--yesil);"></span> Avrupa Ligi</span>
+      <span><span class="kutu" style="background:#a78bfa;"></span> Konferans Ligi</span>
+      <span><span class="kutu" style="background:var(--kirmizi-acik);"></span> Küme Düşme</span>
+      <span style="margin-left:auto;">G=Galibiyet · B=Beraberlik · M=Mağlubiyet · AV=Averaj · P=Puan</span>
+    </div>
+  `;
+
+  icerik.querySelectorAll('tr[data-takim-id]').forEach(tr => {
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => {
+      const tid = parseInt(tr.dataset.takimId);
+      const takim = durum.takimlar.find(t => t.id === tid);
+      if (takim) {
+        $$('.balon').forEach(b => {
+          b.classList.remove('aktif');
+          if (parseInt(b.dataset.id) === tid) b.classList.add('aktif');
+        });
+        takimSec(tid, takim.name);
+        setTimeout(() => {
+          $('#takim-detay-alan')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    });
+  });
+}
+
+/* ===================== TAKIMLARI ÇEK ===================== */
+async function takimlariGetir() {
+  const alan = $('#balon-alan');
+  try {
+    if (!durum.sezon) await sezonuAlgila();
+
+    const bitisYil = durum.sezon + 1;
+    $('#sezon-rozet').textContent = `📅 Sezon: ${durum.sezon}/${String(bitisYil).slice(-2)}`;
+
+    let url = `${API_TABAN}/competitions/${durum.lig}/teams?season=${durum.sezon}`;
+    let r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+
+    if (!r.ok && durum.sezon >= 2026) {
+      durum.sezon = durum.sezon - 1;
+      const by = durum.sezon + 1;
+      $('#sezon-rozet').textContent = `📅 Sezon: ${durum.sezon}/${String(by).slice(-2)}`;
+      url = `${API_TABAN}/competitions/${durum.lig}/teams?season=${durum.sezon}`;
+      r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+    }
+
+    if (!r.ok) {
+      if (r.status === 403) throw new Error('Bu turnuva ücretsiz planda kapsanmıyor (403).');
+      if (r.status === 429) throw new Error('İstek limiti aşıldı (429). Biraz bekleyin.');
+      throw new Error(`API hatası: ${r.status}`);
+    }
+
+    const veri = await r.json();
+    const takimlar = veri.teams || [];
+
+    if (!takimlar.length) {
+      alan.innerHTML = '<div class="bos-kutu">Takım bulunamadı.</div>';
+      return;
+    }
+
+    takimlar.sort((a,b) => (a.shortName||a.name||'').localeCompare(b.shortName||b.name||'','tr'));
+    durum.takimlar = takimlar;
+
+    alan.innerHTML = takimlar.map(t => {
+      const gosterim = t.shortName || t.name || '?';
+      return `<button class="balon" data-id="${t.id}" data-isim="${kacis(t.name)}" title="${kacis(t.name)}">${kacis(gosterim)}</button>`;
+    }).join('');
+
+    alan.querySelectorAll('.balon').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alan.querySelectorAll('.balon').forEach(b => b.classList.remove('aktif'));
+        btn.classList.add('aktif');
+        takimSec(parseInt(btn.dataset.id), btn.dataset.isim);
+      });
+    });
+
+  } catch (hata) {
+    console.error(hata);
+    alan.innerHTML = `<div class="hata-kutu"><strong>❌ Takımlar yüklenemedi</strong><div>${kacis(hata.message)}</div><small>İnternet bağlantınızı kontrol edin.</small></div>`;
+  }
+}
+
+/* ===================== TAKIM SEÇ ===================== */
+async function takimSec(takimId, takimIsim) {
+  durum.seciliTakim = { id: takimId, isim: takimIsim };
+  durum.sonrakiMac = null;
+  durum.macFiltre = 'tumu';
+  const detayAlan = $('#takim-detay-alan');
+  detayAlan.style.display = 'block';
+
+  // Filtre butonlarını sıfırla
+  $$('.mac-filtre-btn').forEach(b => {
+    b.classList.toggle('aktif', b.dataset.mfiltre === 'tumu');
+  });
+
+  $('#takim-baslik').innerHTML = `
+    <div class="takim-logo">${kacis((takimIsim||'?').substring(0,2).toUpperCase())}</div>
+    <div>
+      <div class="takim-isim">${kacis(takimIsim)}</div>
+      <div class="takim-stats-mini" id="mini-stats"><span>Yükleniyor...</span></div>
+    </div>
+  `;
+
+  $('#sonraki-alan').style.display = 'none';
+  $('#mac-listesi').innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Maçlar yükleniyor...</div></div>';
+
+  try {
+    const url = `${API_TABAN}/teams/${takimId}/matches?season=${durum.sezon}&status=FINISHED,SCHEDULED,TIMED,IN_PLAY,PAUSED`;
+    const r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+
+    if (!r.ok) throw new Error(`Maç verisi alınamadı (${r.status})`);
+
+    const veri = await r.json();
+    const maclar = (veri.matches || []).filter(m => m.competition && m.competition.code === 'PL');
+
+    if (!maclar.length) {
+      $('#mac-listesi').innerHTML = '<div class="bos-kutu">Bu takım için Premier Lig maçı bulunamadı.</div>';
+      $('#mini-stats').innerHTML = '<span>Veri yok</span>';
+      return;
+    }
+
+    maclar.sort((a,b) => new Date(a.utcDate) - new Date(b.utcDate));
+
+    const bitenler = maclar.filter(m => m.status === 'FINISHED');
+    const gelecekler = maclar.filter(m =>
+      m.status !== 'FINISHED' &&
+      m.status !== 'CANCELLED' &&
+      m.status !== 'POSTPONED' &&
+      new Date(m.utcDate).getTime() > Date.now()
+    );
+
+    let sonrakiMac = null;
+    if (gelecekler.length) {
+      sonrakiMac = gelecekler.reduce((en, m) =>
+        new Date(m.utcDate) < new Date(en.utcDate) ? m : en
+      , gelecekler[0]);
+    }
+    const canliMac = maclar.find(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
+    if (canliMac) sonrakiMac = canliMac;
+
+    durum.sonrakiMac = sonrakiMac;
+
+    let kumulatif = 0;
+    const grafikEtiketler = [];
+    const grafikPuanlar = [];
+    const macPuanlari = {};
+
+    bitenler.forEach((m, i) => {
+      const ev = m.score.fullTime.home;
+      const dep = m.score.fullTime.away;
+      const evId = m.homeTeam.id;
+      const depId = m.awayTeam.id;
+
+      let puan = 0, sonuc = 'berabere';
+      if (ev > dep) { puan = (evId === takimId) ? 3 : 0; sonuc = (evId === takimId) ? 'galibiyet' : 'maglubiyet'; }
+      else if (dep > ev) { puan = (depId === takimId) ? 3 : 0; sonuc = (depId === takimId) ? 'galibiyet' : 'maglubiyet'; }
+      else { puan = 1; }
+
+      kumulatif += puan;
+      macPuanlari[m.id] = { puan, sonuc };
+
+      const hafta = m.matchday || (i + 1);
+      grafikEtiketler.push(`H${hafta}`);
+      grafikPuanlar.push(kumulatif);
+    });
+
+    const toplamPuan = kumulatif;
+    const oynanan = bitenler.length;
+    const galibiyet = bitenler.filter(m => macPuanlari[m.id]?.sonuc === 'galibiyet').length;
+    const beraberlik = bitenler.filter(m => macPuanlari[m.id]?.sonuc === 'berabere').length;
+    const maglubiyet = bitenler.filter(m => macPuanlari[m.id]?.sonuc === 'maglubiyet').length;
+
+    $('#mini-stats').innerHTML = `
+      <span>📊 <strong>${toplamPuan}</strong> Puan</span>
+      <span>✅ <strong>${galibiyet}</strong>G</span>
+      <span>➖ <strong>${beraberlik}</strong>B</span>
+      <span>❌ <strong>${maglubiyet}</strong>M</span>
+      <span>🎮 <strong>${oynanan}</strong> Maç</span>
+    `;
+
+    if (sonrakiMac) {
+      sonrakiKartCiz(sonrakiMac, takimId);
+      geriSayimBaslat();
+    } else {
+      $('#sonraki-alan').style.display = 'none';
+    }
+
+    if (bitenler.length > 0) {
+      grafikCiz(grafikEtiketler, grafikPuanlar);
+      $('#grafik-bilgi').textContent = `${bitenler.length} maçlık gelişim`;
+    } else {
+      if (durum.puanGrafik) { durum.puanGrafik.destroy(); durum.puanGrafik = null; }
+      $('#grafik-bilgi').textContent = 'Henüz oynanmış maç yok';
+    }
+
+    // Sayıları güncelle
+    const sayacTumu = $('#sayac-tumu');
+    const sayacGelecek = $('#sayac-gelecek');
+    const sayacGecmis = $('#sayac-gecmis');
+    if (sayacTumu) sayacTumu.textContent = maclar.length;
+    if (sayacGelecek) sayacGelecek.textContent = gelecekler.length;
+    if (sayacGecmis) sayacGecmis.textContent = bitenler.length;
+
+    // Sakla ve çiz
+    durum.tumMaclar = maclar;
+    durum.macPuanlari = macPuanlari;
+    macListesiCiz();
+
+  } catch (hata) {
+    console.error(hata);
+    $('#mac-listesi').innerHTML = `<div class="hata-kutu"><strong>❌ Maçlar yüklenemedi</strong><div>${kacis(hata.message)}</div></div>`;
+    $('#mini-stats').innerHTML = '<span>Hata</span>';
+    $('#sonraki-alan').style.display = 'none';
+  }
+}
+
+/* ===================== SIRADAKİ MAÇ KARTI ===================== */
+function sonrakiKartCiz(mac, takimId) {
+  const t = tarihFormatla(mac.utcDate);
+  const ev = kacis(mac.homeTeam?.shortName || mac.homeTeam?.name || '?');
+  const dep = kacis(mac.awayTeam?.shortName || mac.awayTeam?.name || '?');
+  const turnuva = kacis(mac.competition?.name || '');
+  const evdeMi = mac.homeTeam?.id === takimId;
+  const evdepEtiket = evdeMi ? '🏠 EV' : '✈️ DEPLASMAN';
+
+  const canliMi = mac.status === 'IN_PLAY' || mac.status === 'PAUSED';
+  let gs = geriSayimHesapla(mac.utcDate);
+
+  let geriSayimHtml = '';
+  if (canliMi) {
+    geriSayimHtml = `
+      <div class="geri-sayim">
+        <div class="gs-birim" style="border-color:var(--kirmizi);min-width:auto;">
+          <span class="gs-sayi" style="color:var(--kirmizi-acik);">🔴 CANLI</span>
+          <span class="gs-etiket">Şu an oynanıyor</span>
+        </div>
+      </div>
+    `;
+  } else if (!gs.gecti) {
+    geriSayimHtml = `
+      <div class="geri-sayim" data-tarih="${mac.utcDate}">
+        <div class="gs-birim">
+          <span class="gs-sayi" data-gs="gun">${gs.gun}</span>
+          <span class="gs-etiket">Gün</span>
+        </div>
+        <div class="gs-birim">
+          <span class="gs-sayi" data-gs="saat">${gs.saat}</span>
+          <span class="gs-etiket">Saat</span>
+        </div>
+        <div class="gs-birim">
+          <span class="gs-sayi" data-gs="dakika">${gs.dakika}</span>
+          <span class="gs-etiket">Dakika</span>
+        </div>
+        <div class="gs-birim">
+          <span class="gs-sayi" data-gs="saniye">${gs.saniye}</span>
+          <span class="gs-etiket">Saniye</span>
+        </div>
+      </div>
+    `;
+  }
+
+  $('#sonraki-kart').innerHTML = `
+    <div class="sonraki-icerik">
+      <div class="sonraki-tarih">
+        <span class="sonraki-gun">${t.gun}</span>
+        <span class="sonraki-ay">${t.ay}</span>
+        <span class="sonraki-saat">${t.saat}</span>
+      </div>
+      <div class="sonraki-bilgi">
+        <div class="sonraki-takimlar">
+          ${ev} <span style="color:var(--sari);font-weight:500;">vs</span> ${dep}
+          <span class="evdep">${evdepEtiket}</span>
+        </div>
+        <div class="sonraki-turnuva">${turnuva}</div>
+        <div class="sonraki-tam-tarih">📅 ${t.tam} · ${t.saat}</div>
+        ${geriSayimHtml}
+      </div>
+    </div>
+  `;
+  $('#sonraki-alan').style.display = 'block';
+}
+
+/* ===================== GERİ SAYIM ===================== */
+let geriSayimTimer = null;
+
+function geriSayimBaslat() {
+  if (geriSayimTimer) clearInterval(geriSayimTimer);
+
+  geriSayimTimer = setInterval(() => {
+    const gsAlan = document.querySelector('.geri-sayim[data-tarih]');
+    if (!gsAlan) return;
+
+    const tarihStr = gsAlan.getAttribute('data-tarih');
+    if (!tarihStr) return;
+
+    const gs = geriSayimHesapla(tarihStr);
+    if (gs.gecti) {
+      clearInterval(geriSayimTimer);
+      return;
+    }
+
+    const gunEl = gsAlan.querySelector('[data-gs="gun"]');
+    const saatEl = gsAlan.querySelector('[data-gs="saat"]');
+    const dakikaEl = gsAlan.querySelector('[data-gs="dakika"]');
+    const saniyeEl = gsAlan.querySelector('[data-gs="saniye"]');
+
+    if (gunEl) gunEl.textContent = gs.gun;
+    if (saatEl) saatEl.textContent = gs.saat;
+    if (dakikaEl) dakikaEl.textContent = gs.dakika;
+    if (saniyeEl) saniyeEl.textContent = gs.saniye;
+  }, 1000);
+}
+
+/* ===================== GRAFİK ===================== */
+function grafikCiz(etiketler, puanlar) {
+  const ctx = document.getElementById('puan-grafigi').getContext('2d');
+  if (durum.puanGrafik) durum.puanGrafik.destroy();
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, 'rgba(56,189,248,0.35)');
+  gradient.addColorStop(1, 'rgba(56,189,248,0.02)');
+
+  durum.puanGrafik = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: etiketler,
+      datasets: [{
+        label: 'Kümülatif Puan',
+        data: puanlar,
+        borderColor: '#38bdf8',
+        backgroundColor: gradient,
+        borderWidth: 3,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointBackgroundColor: '#0a0f1c',
+        pointBorderColor: '#38bdf8',
+        pointBorderWidth: 2,
+        pointHoverBackgroundColor: '#38bdf8',
+        pointHoverBorderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#f8fafc',
+          bodyColor: '#e2e8f0',
+          borderColor: '#334155',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 8,
+          displayColors: false,
+          callbacks: { label: ctx => `Toplam Puan: ${ctx.parsed.y}` }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(51,65,85,0.3)', drawBorder: false },
+          ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(51,65,85,0.3)', drawBorder: false },
+          ticks: {
+            color: '#94a3b8',
+            font: { size: 10, weight: '600' },
+            stepSize: 3,
+            callback: v => v + ' P'
+          }
+        }
+      },
+      animation: { duration: 800, easing: 'easeOutQuart' }
+    }
+  });
+}
+
+/* ===================== MAÇ LİSTESİ (FİLTRELİ) ===================== */
+function macListesiCiz() {
+  const alan = $('#mac-listesi');
+  const takimId = durum.seciliTakim?.id;
+  const maclar = durum.tumMaclar;
+  const macPuanlari = durum.macPuanlari;
+
+  if (!maclar || !maclar.length) {
+    alan.innerHTML = '<div class="bos-kutu">Maç bulunamadı.</div>';
+    return;
+  }
+
+  const gelecekler = maclar
+    .filter(m => m.status !== 'FINISHED')
+    .sort((a,b) => new Date(a.utcDate) - new Date(b.utcDate));
+  const bitenler = maclar
+    .filter(m => m.status === 'FINISHED')
+    .sort((a,b) => new Date(b.utcDate) - new Date(a.utcDate));
+
+  // Filtre uygula
+  let gosterilecek = [];
+  if (durum.macFiltre === 'gelecek') {
+    gosterilecek = gelecekler;
+  } else if (durum.macFiltre === 'gecmis') {
+    gosterilecek = bitenler;
+  } else {
+    gosterilecek = gelecekler.concat(bitenler);
+  }
+
+  if (!gosterilecek.length) {
+    const mesaj = durum.macFiltre === 'gelecek'
+      ? 'Sıradaki maç bulunmuyor.'
+      : durum.macFiltre === 'gecmis'
+        ? 'Geçmiş maç bulunmuyor.'
+        : 'Maç bulunamadı.';
+    alan.innerHTML = `<div class="bos-kutu">${mesaj}</div>`;
+    return;
+  }
+
+  alan.innerHTML = gosterilecek.map(m => {
+    const t = tarihFormatla(m.utcDate);
+    const ev = kacis(m.homeTeam?.shortName || m.homeTeam?.name || '?');
+    const dep = kacis(m.awayTeam?.shortName || m.awayTeam?.name || '?');
+    const bitti = m.status === 'FINISHED';
+    const siradakiMi = durum.sonrakiMac && m.id === durum.sonrakiMac.id;
+
+    let skorHtml = '';
+    let kartSinif = 'mac-kart';
+    let puanRozet = '';
+
+    if (bitti) {
+      const evGol = m.score.fullTime.home;
+      const depGol = m.score.fullTime.away;
+      const puanBilgi = macPuanlari[m.id] || { puan:0, sonuc:'berabere' };
+
+      skorHtml = `<div class="mac-skor ${puanBilgi.sonuc === 'galibiyet' ? 'kazandi' : puanBilgi.sonuc === 'maglubiyet' ? 'kaybetti' : 'berabere'}">${evGol} - ${depGol}</div>`;
+
+      const rozetSinif = puanBilgi.puan === 3 ? 'p3' : puanBilgi.puan === 1 ? 'p1' : 'p0';
+      const rozetMetin = puanBilgi.puan === 3 ? '+3' : puanBilgi.puan === 1 ? '+1' : '+0';
+      puanRozet = `<span class="mac-puan-rozet ${rozetSinif}">${rozetMetin}</span>`;
+
+      if (puanBilgi.sonuc === 'galibiyet') kartSinif += ' bitti';
+      else if (puanBilgi.sonuc === 'maglubiyet') kartSinif += ' magbubiyet';
+      else kartSinif += ' berabere';
+    } else {
+      skorHtml = `<div class="mac-skor" style="color:var(--mavi);background:rgba(56,189,248,0.08);font-size:0.85rem;">vs</div>`;
+
+      if (siradakiMi) {
+        puanRozet = `<span class="mac-puan-rozet siradaki">⚡ SIRADAKİ</span>`;
+        kartSinif += ' gelecek siradaki';
+      } else {
+        puanRozet = `<span class="mac-puan-rozet gelecek">Yakında</span>`;
+        kartSinif += ' gelecek';
+      }
+    }
+
+    const evdeMi = m.homeTeam?.id === takimId;
+    const evDepIsaret = evdeMi ? '🏠' : '✈️';
+
+    return `
+      <div class="${kartSinif}">
+        <div class="mac-tarih">
+          <span class="gun">${t.gun}</span>
+          ${t.ay}
+        </div>
+        <div class="mac-takimlar">
+          <span style="opacity:0.7;font-size:0.75rem;margin-right:0.3rem;">${evDepIsaret}</span>
+          ${ev} <span style="color:var(--metin-gri);font-weight:400;">vs</span> ${dep}
+          ${puanRozet}
+        </div>
+        ${skorHtml}
+      </div>
+    `;
+  }).join('');
+}
+
+/* ===================== OLAYLAR ===================== */
+function puanDurumButonunuBagla() {
+  const buton = $('#puan-durum-buton');
+  const alan = $('#puan-tablo-alan');
+  if (!buton || !alan) return;
+
+  buton.addEventListener('click', async () => {
+    durum.puanTabloAcik = !durum.puanTabloAcik;
+
+    if (durum.puanTabloAcik) {
+      alan.classList.add('acik');
+      buton.classList.add('aktif');
+      buton.textContent = '✖ Puan Durumunu Kapat';
+
+      if (!durum.puanTablosuYuklendi) {
+        if (!durum.sezon) await sezonuAlgila();
+        await puanDurumuGetir();
+      }
+    } else {
+      alan.classList.remove('acik');
+      buton.classList.remove('aktif');
+      buton.textContent = '📊 Lig Puan Durumu';
+    }
+  });
+}
+
+function macFiltreButonlariniBagla() {
+  $$('.mac-filtre-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.mac-filtre-btn').forEach(b => b.classList.remove('aktif'));
+      btn.classList.add('aktif');
+      durum.macFiltre = btn.dataset.mfiltre || 'tumu';
+      macListesiCiz();
+    });
+  });
+}
+
+/* ===================== SAYFA GÖRÜNÜRLÜĞÜ ===================== */
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    const gsAlan = document.querySelector('.geri-sayim[data-tarih]');
+    if (gsAlan) {
+      const tarihStr = gsAlan.getAttribute('data-tarih');
+      const gs = geriSayimHesapla(tarihStr);
+      if (!gs.gecti) {
+        const gunEl = gsAlan.querySelector('[data-gs="gun"]');
+        const saatEl = gsAlan.querySelector('[data-gs="saat"]');
+        const dakikaEl = gsAlan.querySelector('[data-gs="dakika"]');
+        const saniyeEl = gsAlan.querySelector('[data-gs="saniye"]');
+        if (gunEl) gunEl.textContent = gs.gun;
+        if (saatEl) saatEl.textContent = gs.saat;
+        if (dakikaEl) dakikaEl.textContent = gs.dakika;
+        if (saniyeEl) saniyeEl.textContent = gs.saniye;
+      }
+    }
+  }
+});
+
+/* ===================== BAŞLAT ===================== */
+document.addEventListener('DOMContentLoaded', () => {
+  puanDurumButonunuBagla();
+  macFiltreButonlariniBagla();
+  takimlariGetir();
+});
+</script>
+</body>
+</html>
