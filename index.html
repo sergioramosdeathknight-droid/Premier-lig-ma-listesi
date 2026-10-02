@@ -1,1187 +1,2308 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-tema="koyu">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Premier Lig takım takip - puan grafikleri ve maç sonuçları">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Premier Lig takım takip - puan grafikleri, istatistikler, karşılaştırma ve maç sonuçları">
 <meta name="theme-color" content="#0f172a">
-<title>⚽ Premier Lig Takım Takip</title>
+<meta name="color-scheme" content="dark light">
+<title>⚽ Premier Lig Takım Takip · Pro</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
+/* ============================================================
+   1. TASARIM DEĞİŞKENLERİ (TEMA)
+   ============================================================ */
 :root {
   --arka-plan: #0a0f1c;
   --arka-plan-2: #0f172a;
+  --arka-plan-3: #131c31;
   --kart: #1e293b;
   --kart-hover: #243349;
+  --kart-ust: #2a3a52;
   --sinir: #334155;
   --sinir-acik: #475569;
   --kirmizi: #dc2626;
   --kirmizi-acik: #ef4444;
   --kirmizi-koyu: #991b1b;
   --sari: #facc15;
+  --sari-koyu: #eab308;
   --mavi: #38bdf8;
   --mavi-koyu: #0ea5e9;
   --yesil: #4ade80;
   --yesil-koyu: #22c55e;
   --turuncu: #f97316;
+  --mor: #a78bfa;
+  --pembe: #f472b6;
   --metin-beyaz: #f8fafc;
   --metin-acik: #e2e8f0;
   --metin-gri: #94a3b8;
   --metin-gri-koyu: #64748b;
+  --golge-kucuk: 0 2px 8px rgba(0,0,0,0.25);
   --golge: 0 8px 24px rgba(0,0,0,0.35);
+  --golge-buyuk: 0 16px 48px rgba(0,0,0,0.5);
+  --yuvarlak-kucuk: 8px;
   --yuvarlak: 12px;
   --yuvarlak-buyuk: 16px;
   --yuvarlak-tam: 9999px;
+  --gecis-hizli: 0.15s ease;
   --gecis: 0.3s ease;
+  --gecis-yavas: 0.5s ease;
+  --cam-arka: rgba(15, 23, 42, 0.85);
+  --skeleton-1: #1e293b;
+  --skeleton-2: #2a3a52;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
+html[data-tema="acik"] {
+  --arka-plan: #f1f5f9;
+  --arka-plan-2: #e2e8f0;
+  --arka-plan-3: #cbd5e1;
+  --kart: #ffffff;
+  --kart-hover: #f8fafc;
+  --kart-ust: #f1f5f9;
+  --sinir: #cbd5e1;
+  --sinir-acik: #94a3b8;
+  --metin-beyaz: #0f172a;
+  --metin-acik: #1e293b;
+  --metin-gri: #475569;
+  --metin-gri-koyu: #64748b;
+  --cam-arka: rgba(255, 255, 255, 0.9);
+  --skeleton-1: #e2e8f0;
+  --skeleton-2: #cbd5e1;
+  --golge: 0 8px 24px rgba(15,23,42,0.1);
+  --golge-buyuk: 0 16px 48px rgba(15,23,42,0.15);
+}
+
+/* ============================================================
+   2. TEMEL SIFIRLAMA
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body {
-  font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
-  background:var(--arka-plan);
-  color:var(--metin-acik);
-  min-height:100vh;
-  line-height:1.6;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--arka-plan);
+  color: var(--metin-acik);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
   background-image:
     radial-gradient(circle at 15% 10%, rgba(220,38,38,0.07) 0%, transparent 45%),
     radial-gradient(circle at 85% 80%, rgba(56,189,248,0.05) 0%, transparent 45%);
-  background-attachment:fixed;
+  background-attachment: fixed;
+  transition: background-color var(--gecis), color var(--gecis);
 }
-::-webkit-scrollbar { width:8px; height:8px; }
-::-webkit-scrollbar-track { background:var(--arka-plan-2); }
-::-webkit-scrollbar-thumb { background:var(--sinir); border-radius:var(--yuvarlak-tam); }
-::-webkit-scrollbar-thumb:hover { background:var(--sinir-acik); }
+button { font-family: inherit; }
+a { color: var(--mavi); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; display: block; }
+:focus-visible { outline: 2px solid var(--mavi); outline-offset: 2px; border-radius: 4px; }
 
-header {
-  position:relative;
-  padding:2rem 1rem 1.25rem;
-  text-align:center;
-  overflow:hidden;
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--arka-plan-2); }
+::-webkit-scrollbar-thumb { background: var(--sinir); border-radius: var(--yuvarlak-tam); border: 2px solid var(--arka-plan-2); }
+::-webkit-scrollbar-thumb:hover { background: var(--sinir-acik); }
+::selection { background: var(--mavi); color: #0a0f1c; }
+
+.gizli { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* ============================================================
+   3. HATA KUTUSU
+   ============================================================ */
+#hata-kutusu {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9999;
+  background: #dc2626;
+  color: #fff;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  white-space: pre-wrap;
+  display: none;
+  cursor: pointer;
+  max-height: 40vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
+#hata-kutusu::after { content: ' (kapatmak için tıkla)'; opacity: .7; font-size: 10px; }
+
+/* ============================================================
+   4. ÜST BİLGİ ÇUBUĞU
+   ============================================================ */
+.ust-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--cam-arka);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--sinir);
+  padding: 0.6rem 1rem;
+}
+.ust-bar-icerik {
+  max-width: 1280px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+}
+.ust-logo {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-weight: 900; font-size: 0.95rem; color: var(--metin-beyaz); letter-spacing: -0.3px;
+}
+.ust-logo .logo-emojisi { font-size: 1.3rem; filter: drop-shadow(0 0 8px rgba(220,38,38,0.4)); }
+.ust-araclar { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.arac-buton {
+  width: 38px; height: 38px; border-radius: var(--yuvarlak-kucuk);
+  background: var(--kart); border: 1px solid var(--sinir); color: var(--metin-acik);
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1rem; transition: all var(--gecis-hizli); position: relative;
+}
+.arac-buton:hover {
+  background: var(--kart-hover); border-color: var(--mavi); color: var(--mavi);
+  transform: translateY(-2px);
+}
+.arac-buton.aktif { background: var(--mavi); color: #0a0f1c; border-color: var(--mavi); }
+.arac-buton .rozet-sayi {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--yuvarlak-tam); background: var(--kirmizi); color: #fff;
+  font-size: 0.6rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--arka-plan);
+}
+
+.arama-alan { position: relative; flex: 1; max-width: 320px; min-width: 180px; }
+.arama-input {
+  width: 100%; padding: 0.55rem 2.2rem 0.55rem 2.4rem;
+  border-radius: var(--yuvarlak-tam); background: var(--kart); border: 1px solid var(--sinir);
+  color: var(--metin-beyaz); font-size: 0.85rem; font-family: inherit; transition: all var(--gecis);
+}
+.arama-input::placeholder { color: var(--metin-gri-koyu); }
+.arama-input:focus { outline: none; border-color: var(--mavi); box-shadow: 0 0 0 3px rgba(56,189,248,0.15); }
+.arama-ikon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--metin-gri); pointer-events: none; font-size: 0.9rem; }
+.arama-temizle {
+  position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+  width: 24px; height: 24px; border-radius: 50%; background: transparent; border: none;
+  color: var(--metin-gri); cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 0.75rem;
+}
+.arama-temizle:hover { background: var(--sinir); color: var(--metin-beyaz); }
+.arama-temizle.goster { display: flex; }
+
+/* ============================================================
+   5. NAVİGASYON SEKMELERİ
+   ============================================================ */
+.sekmeler {
+  display: flex; gap: 0.25rem; padding: 0.4rem 1rem 0;
+  max-width: 1280px; margin: 0 auto; overflow-x: auto; scrollbar-width: none;
+}
+.sekmeler::-webkit-scrollbar { display: none; }
+.sekme {
+  padding: 0.6rem 1.1rem; border-radius: var(--yuvarlak-tam) var(--yuvarlak-tam) 0 0;
+  background: transparent; border: 1px solid transparent; border-bottom: none;
+  color: var(--metin-gri); font-size: 0.85rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: all var(--gecis-hizli);
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.sekme:hover { color: var(--metin-beyaz); background: rgba(56,189,248,0.05); }
+.sekme.aktif { background: var(--arka-plan-2); color: var(--mavi); border-color: var(--sinir); border-bottom-color: var(--arka-plan-2); }
+
+/* ============================================================
+   6. HEADER
+   ============================================================ */
+header { position: relative; padding: 2rem 1rem 1.25rem; text-align: center; overflow: hidden; }
 header::before {
-  content:'';
-  position:absolute;
-  top:-50%; left:-50%;
-  width:200%; height:200%;
-  background:radial-gradient(circle at 50% 50%, rgba(220,38,38,0.12), transparent 60%);
-  animation:donus 30s linear infinite;
-  pointer-events:none;
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(220,38,38,0.12), transparent 60%);
+  animation: donus 30s linear infinite; pointer-events: none;
 }
-@keyframes donus { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-header > * { position:relative; z-index:1; }
-
+@keyframes donus { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+header > * { position: relative; z-index: 1; }
 h1 {
-  font-size:clamp(1.4rem,3.5vw,2rem);
-  font-weight:900;
-  letter-spacing:-0.5px;
-  background:linear-gradient(135deg,#fff,var(--mavi),var(--kirmizi-acik));
-  -webkit-background-clip:text;
-  background-clip:text;
-  -webkit-text-fill-color:transparent;
-  margin-bottom:0.2rem;
+  font-size: clamp(1.4rem, 3.5vw, 2.2rem); font-weight: 900; letter-spacing: -0.7px;
+  background: linear-gradient(135deg, var(--metin-beyaz), var(--mavi), var(--kirmizi-acik));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; margin-bottom: 0.2rem;
 }
-.alt-baslik { color:var(--metin-gri); font-size:0.85rem; }
+.alt-baslik { color: var(--metin-gri); font-size: 0.85rem; }
+.rozet-grubu { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 0.75rem; }
 .sezon-rozet {
-  display:inline-block;
-  margin-top:0.6rem;
-  padding:0.3rem 0.9rem;
-  background:rgba(56,189,248,0.1);
-  border:1px solid rgba(56,189,248,0.3);
-  border-radius:var(--yuvarlak-tam);
-  color:var(--mavi);
-  font-size:0.75rem;
-  font-weight:700;
-  letter-spacing:1px;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.35rem 0.9rem; background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.3); border-radius: var(--yuvarlak-tam);
+  color: var(--mavi); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
 }
+.sezon-rozet.canli { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.4); color: var(--kirmizi-acik); }
+.sezon-rozet.canli::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--kirmizi-acik); animation: noktaParla 1.5s ease-in-out infinite;
+}
+@keyframes noktaParla { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-.bolum {
-  max-width:1100px;
-  margin:0 auto 1.5rem;
-  padding:0 1rem;
-}
+/* ============================================================
+   7. BÖLÜM / KAPSAYICI
+   ============================================================ */
+.bolum { max-width: 1280px; margin: 0 auto 1.5rem; padding: 0 1rem; animation: icerikGir 0.4s ease; }
+@keyframes icerikGir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .bolum-ust {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:0.75rem;
-  padding-bottom:0.4rem;
-  border-bottom:1px solid var(--sinir);
-  flex-wrap:wrap;
-  gap:0.5rem;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.75rem; padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--sinir); flex-wrap: wrap; gap: 0.5rem;
 }
 .bolum-baslik {
-  font-size:1.1rem;
-  font-weight:800;
-  color:var(--metin-beyaz);
+  font-size: 1.1rem; font-weight: 800; color: var(--metin-beyaz);
+  display: flex; align-items: center; gap: 0.5rem;
 }
-.puan-durum-buton {
-  padding:0.45rem 1rem;
-  border-radius:var(--yuvarlak-tam);
-  background:linear-gradient(135deg, rgba(250,204,21,0.15), rgba(249,115,22,0.15));
-  border:1px solid rgba(250,204,21,0.4);
-  color:var(--sari);
-  font-size:0.8rem;
-  font-weight:700;
-  display:inline-flex;
-  align-items:center;
-  gap:0.4rem;
-  transition:all var(--gecis);
-  cursor:pointer;
-}
-.puan-durum-buton:hover {
-  background:linear-gradient(135deg, rgba(250,204,21,0.25), rgba(249,115,22,0.25));
-  border-color:var(--sari);
-  transform:translateY(-2px);
-  box-shadow:0 6px 20px rgba(250,204,21,0.25);
-}
-.puan-durum-buton.aktif {
-  background:linear-gradient(135deg, var(--sari), var(--turuncu));
-  color:#0a0f1c;
-  border-color:transparent;
-}
+.bolum-baslik small { font-size: 0.75rem; color: var(--metin-gri); font-weight: 500; }
 
-/* TAKIM BALONCUKLARI */
-.balon-alan {
-  display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
-  gap:0.4rem;
-  padding:0.5rem 0;
+/* ============================================================
+   8. BUTONLAR
+   ============================================================ */
+.btn {
+  padding: 0.5rem 1rem; border-radius: var(--yuvarlak-tam);
+  border: 1px solid var(--sinir); background: var(--kart); color: var(--metin-acik);
+  font-size: 0.8rem; font-weight: 700; cursor: pointer;
+  transition: all var(--gecis-hizli);
+  display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;
 }
-.balon {
-  position:relative;
-  padding:0.4rem 0.6rem;
-  border-radius:8px;
-  background:var(--kart);
-  border:1px solid var(--sinir);
-  color:var(--metin-acik);
-  font-size:0.75rem;
-  font-weight:600;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  user-select:none;
-  text-align:center;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.balon:hover {
-  transform:translateY(-2px);
-  border-color:var(--mavi);
-  color:var(--metin-beyaz);
-  background:var(--kart-hover);
-}
-.balon.aktif {
-  background:linear-gradient(135deg,var(--kirmizi),var(--kirmizi-koyu));
-  border-color:var(--kirmizi-acik);
-  color:#fff;
-  box-shadow:0 4px 16px rgba(220,38,38,0.35);
-}
+.btn:hover { background: var(--kart-hover); border-color: var(--mavi); color: var(--mavi); transform: translateY(-1px); }
+.btn.aktif { background: linear-gradient(135deg, var(--mavi), var(--mavi-koyu)); color: #0a0f1c; border-color: transparent; box-shadow: 0 4px 12px rgba(56,189,248,0.3); }
+.btn-sari { background: linear-gradient(135deg, rgba(250,204,21,0.15), rgba(249,115,22,0.15)); border-color: rgba(250,204,21,0.4); color: var(--sari); }
+.btn-sari:hover { background: linear-gradient(135deg, rgba(250,204,21,0.25), rgba(249,115,22,0.25)); border-color: var(--sari); color: var(--sari); }
+.btn-sari.aktif { background: linear-gradient(135deg, var(--sari), var(--turuncu)); color: #0a0f1c; border-color: transparent; }
+.btn-kirmizi { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.4); color: var(--kirmizi-acik); }
+.btn-kirmizi:hover { background: rgba(220,38,38,0.2); border-color: var(--kirmizi); }
+.btn-kucuk { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
+.btn-buyuk { padding: 0.7rem 1.4rem; font-size: 0.9rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-/* PUAN DURUMU TABLOSU */
+/* ============================================================
+   9. PUAN DURUMU TABLOSU
+   ============================================================ */
 .puan-tablo-alan {
-  display:none;
-  background:var(--kart);
-  border-radius:var(--yuvarlak-buyuk);
-  padding:1rem;
-  border:1px solid var(--sinir);
-  box-shadow:var(--golge);
-  margin-bottom:1.5rem;
-  overflow-x:auto;
+  display: none; background: var(--kart);
+  border-radius: var(--yuvarlak-buyuk); padding: 1rem;
+  border: 1px solid var(--sinir); box-shadow: var(--golge);
+  margin-bottom: 1.5rem; overflow-x: auto;
 }
-.puan-tablo-alan.acik { display:block; animation:acilma 0.3s ease; }
-@keyframes acilma {
-  from { opacity:0; transform:translateY(-10px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-.puan-tablo {
-  width:100%;
-  border-collapse:collapse;
-  font-size:0.8rem;
-  min-width:640px;
-}
-.puan-tablo thead th {
-  padding:0.6rem 0.4rem;
-  text-align:center;
-  font-size:0.7rem;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:0.5px;
-  color:var(--metin-gri);
-  border-bottom:2px solid var(--sinir);
-  background:rgba(10,15,28,0.4);
-}
-.puan-tablo thead th:first-child { border-top-left-radius:8px; }
-.puan-tablo thead th:last-child { border-top-right-radius:8px; }
-.puan-tablo thead th.takim-sutun { text-align:left; padding-left:0.75rem; }
-.puan-tablo tbody tr {
-  border-bottom:1px solid rgba(51,65,85,0.5);
-  transition:background var(--gecis);
-}
-.puan-tablo tbody tr:hover { background:var(--kart-hover); }
-.puan-tablo tbody td {
-  padding:0.6rem 0.4rem;
-  text-align:center;
-  color:var(--metin-acik);
-  font-weight:600;
-}
-.puan-tablo tbody td.takim-hucresi {
-  text-align:left;
-  padding-left:0.75rem;
-  color:var(--metin-beyaz);
-  font-weight:700;
-  display:flex;
-  align-items:center;
-  gap:0.5rem;
-}
-.sira-rozet {
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:24px; height:24px;
-  border-radius:6px;
-  font-size:0.7rem;
-  font-weight:900;
-  flex-shrink:0;
-}
-.sira-sampiyonlar { background:rgba(56,189,248,0.2); color:var(--mavi); border-left:3px solid var(--mavi); }
-.sira-avrupa { background:rgba(74,222,128,0.15); color:var(--yesil); border-left:3px solid var(--yesil); }
-.sira-konferans { background:rgba(167,139,250,0.15); color:#a78bfa; border-left:3px solid #a78bfa; }
-.sira-normal { background:rgba(148,163,184,0.1); color:var(--metin-gri); }
-.sira-dusme { background:rgba(239,68,68,0.15); color:var(--kirmizi-acik); border-left:3px solid var(--kirmizi-acik); }
+.puan-tablo-alan.acik { display: block; animation: acilma 0.3s ease; }
+@keyframes acilma { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-.puan-tablo .puan-hucresi {
-  font-weight:900;
-  color:var(--sari);
-  font-size:0.9rem;
+.puan-tablo { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 720px; }
+.puan-tablo thead th {
+  padding: 0.6rem 0.4rem; text-align: center;
+  font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--metin-gri); border-bottom: 2px solid var(--sinir);
+  background: rgba(10,15,28,0.4); user-select: none; position: relative;
 }
-.puan-tablo .form-mini {
-  display:flex;
-  gap:2px;
-  justify-content:center;
+html[data-tema="acik"] .puan-tablo thead th { background: rgba(15,23,42,0.04); }
+.puan-tablo thead th.siralanabilir { cursor: pointer; }
+.puan-tablo thead th.siralanabilir:hover { color: var(--mavi); }
+.puan-tablo thead th.siralanabilir::after { content: '⇅'; margin-left: 0.25rem; opacity: 0.4; font-size: 0.65rem; }
+.puan-tablo thead th.siralama-aktif::after { content: '↓'; opacity: 1; color: var(--mavi); }
+.puan-tablo thead th.siralama-aktif.ters::after { content: '↑'; }
+.puan-tablo thead th:first-child { border-top-left-radius: 8px; }
+.puan-tablo thead th:last-child { border-top-right-radius: 8px; }
+.puan-tablo thead th.takim-sutun { text-align: left; padding-left: 0.75rem; }
+.puan-tablo tbody tr { border-bottom: 1px solid rgba(51,65,85,0.5); transition: background var(--gecis-hizli); cursor: pointer; }
+.puan-tablo tbody tr:hover { background: var(--kart-hover); }
+.puan-tablo tbody tr.favori-satir { background: rgba(250,204,21,0.04); }
+.puan-tablo tbody td { padding: 0.55rem 0.4rem; text-align: center; color: var(--metin-acik); font-weight: 600; }
+.puan-tablo tbody td.takim-hucresi {
+  text-align: left; padding-left: 0.75rem; color: var(--metin-beyaz); font-weight: 700;
+  display: flex; align-items: center; gap: 0.5rem;
 }
+.puan-tablo .puan-hucresi { font-weight: 900; color: var(--sari); font-size: 0.9rem; }
+
+.sira-rozet {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 6px;
+  font-size: 0.7rem; font-weight: 900; flex-shrink: 0;
+}
+.sira-sampiyonlar { background: rgba(56,189,248,0.2); color: var(--mavi); border-left: 3px solid var(--mavi); }
+.sira-avrupa { background: rgba(74,222,128,0.15); color: var(--yesil); border-left: 3px solid var(--yesil); }
+.sira-konferans { background: rgba(167,139,250,0.15); color: var(--mor); border-left: 3px solid var(--mor); }
+.sira-normal { background: rgba(148,163,184,0.1); color: var(--metin-gri); }
+.sira-dusme { background: rgba(239,68,68,0.15); color: var(--kirmizi-acik); border-left: 3px solid var(--kirmizi-acik); }
+
+.form-mini { display: flex; gap: 2px; justify-content: center; }
 .form-nokta {
-  width:16px; height:16px;
-  border-radius:4px;
-  font-size:0.6rem;
-  font-weight:900;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  color:#0a0f1c;
+  width: 18px; height: 18px; border-radius: 4px; font-size: 0.6rem; font-weight: 900;
+  display: inline-flex; align-items: center; justify-content: center; color: #0a0f1c;
+  transition: transform var(--gecis-hizli); cursor: default;
 }
-.form-g { background:var(--yesil); }
-.form-b { background:var(--sari); }
-.form-m { background:var(--kirmizi-acik); color:#fff; }
+.form-nokta:hover { transform: scale(1.2); z-index: 2; }
+.form-g { background: var(--yesil); }
+.form-b { background: var(--sari); }
+.form-m { background: var(--kirmizi-acik); color: #fff; }
+
+.favori-yildiz {
+  background: transparent; border: none; color: var(--metin-gri-koyu); cursor: pointer;
+  font-size: 1rem; padding: 0; line-height: 1; transition: all var(--gecis-hizli);
+}
+.favori-yildiz:hover { color: var(--sari); transform: scale(1.15); }
+.favori-yildiz.aktif { color: var(--sari); }
 
 .lejant {
-  display:flex;
-  flex-wrap:wrap;
-  gap:0.75rem;
-  margin-top:0.75rem;
-  padding-top:0.75rem;
-  border-top:1px solid var(--sinir);
-  font-size:0.7rem;
-  color:var(--metin-gri);
+  display: flex; flex-wrap: wrap; gap: 0.75rem;
+  margin-top: 0.75rem; padding-top: 0.75rem;
+  border-top: 1px solid var(--sinir); font-size: 0.7rem; color: var(--metin-gri);
 }
-.lejant span { display:inline-flex; align-items:center; gap:0.3rem; }
-.lejant .kutu {
-  width:12px; height:12px;
-  border-radius:3px;
-}
+.lejant span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.lejant .kutu { width: 12px; height: 12px; border-radius: 3px; }
 
-/* TAKIM BAŞLIĞI */
+/* ============================================================
+   10. TAKIM BALONCUKLARI
+   ============================================================ */
+.balon-alan { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.4rem; padding: 0.5rem 0; }
+.balon {
+  position: relative; padding: 0.5rem 0.65rem;
+  border-radius: var(--yuvarlak-kucuk); background: var(--kart); border: 1px solid var(--sinir);
+  color: var(--metin-acik); font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; transition: all var(--gecis-hizli); user-select: none;
+  text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: flex; align-items: center; justify-content: center; gap: 0.3rem; min-height: 42px;
+}
+.balon:hover { transform: translateY(-2px); border-color: var(--mavi); color: var(--metin-beyaz); background: var(--kart-hover); box-shadow: var(--golge-kucuk); }
+.balon.aktif { background: linear-gradient(135deg, var(--kirmizi), var(--kirmizi-koyu)); border-color: var(--kirmizi-acik); color: #fff; box-shadow: 0 4px 16px rgba(220,38,38,0.35); }
+.balon .balon-yildiz { position: absolute; top: 2px; right: 4px; font-size: 0.7rem; color: var(--sari); opacity: 0; transition: opacity var(--gecis-hizli); }
+.balon.favori .balon-yildiz { opacity: 1; }
+.balon.gizli-balon { display: none; }
+
+/* ============================================================
+   11. TAKIM BAŞLIĞI
+   ============================================================ */
 .takim-baslik {
-  display:flex;
-  align-items:center;
-  gap:1rem;
-  margin-bottom:1rem;
-  padding:1rem 1.25rem;
-  background:var(--kart);
-  border-radius:var(--yuvarlak-buyuk);
-  border-left:5px solid var(--kirmizi);
-  box-shadow:var(--golge);
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1rem; padding: 1rem 1.25rem;
+  background: var(--kart); border-radius: var(--yuvarlak-buyuk);
+  border-left: 5px solid var(--kirmizi); box-shadow: var(--golge);
+  position: relative; overflow: hidden;
 }
+.takim-baslik::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, rgba(220,38,38,0.06), transparent 40%); pointer-events: none;
+}
+.takim-baslik > * { position: relative; z-index: 1; }
 .takim-logo {
-  width:48px; height:48px;
-  border-radius:50%;
-  background:linear-gradient(145deg,var(--kirmizi),var(--kirmizi-koyu));
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.2rem;
-  font-weight:900;
-  color:#fff;
-  border:2px solid rgba(255,255,255,0.1);
-  flex-shrink:0;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(145deg, var(--kirmizi), var(--kirmizi-koyu));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; font-weight: 900; color: #fff;
+  border: 3px solid rgba(255,255,255,0.1); flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(220,38,38,0.4);
 }
-.takim-isim {
-  font-size:1.25rem;
-  font-weight:900;
-  color:var(--metin-beyaz);
-}
-.takim-stats-mini {
-  display:flex;
-  gap:0.75rem;
-  margin-top:0.2rem;
-  font-size:0.75rem;
-  color:var(--metin-gri);
-  flex-wrap:wrap;
-}
-.takim-stats-mini span strong { color:var(--sari); }
+.takim-isim { font-size: 1.35rem; font-weight: 900; color: var(--metin-beyaz); letter-spacing: -0.3px; }
+.takim-stats-mini { display: flex; gap: 0.75rem; margin-top: 0.3rem; font-size: 0.78rem; color: var(--metin-gri); flex-wrap: wrap; }
+.takim-stats-mini span strong { color: var(--sari); }
+.takim-aksiyonlar { margin-left: auto; display: flex; gap: 0.35rem; flex-wrap: wrap; }
 
-/* SIRADAKİ MAÇ KARTI */
-.sonraki-alan { margin-bottom:1rem; }
+/* ============================================================
+   12. SIRADAKİ MAÇ KARTI
+   ============================================================ */
+.sonraki-alan { margin-bottom: 1rem; }
 .sonraki-etiket {
-  display:inline-flex;
-  align-items:center;
-  gap:0.5rem;
-  font-size:0.7rem;
-  text-transform:uppercase;
-  letter-spacing:2px;
-  font-weight:800;
-  color:var(--sari);
-  background:rgba(250,204,21,0.1);
-  padding:0.4rem 0.9rem;
-  border-radius:var(--yuvarlak-tam);
-  border:1px solid rgba(250,204,21,0.3);
-  margin-bottom:0.6rem;
-  animation:etiketParla 2s ease-in-out infinite;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;
+  color: var(--sari); background: rgba(250,204,21,0.1);
+  padding: 0.4rem 0.9rem; border-radius: var(--yuvarlak-tam);
+  border: 1px solid rgba(250,204,21,0.3); margin-bottom: 0.6rem;
+  animation: etiketParla 2s ease-in-out infinite;
 }
 @keyframes etiketParla {
-  0%, 100% { box-shadow:0 0 0 0 rgba(250,204,21,0.4); }
-  50%      { box-shadow:0 0 0 8px rgba(250,204,21,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(250,204,21,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(250,204,21,0); }
 }
 .sonraki-etiket::before {
-  content:'';
-  width:8px; height:8px;
-  border-radius:50%;
-  background:var(--sari);
-  animation:noktaParla 1.5s ease-in-out infinite;
-}
-@keyframes noktaParla {
-  0%, 100% { opacity:1; }
-  50%      { opacity:0.3; }
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--sari); animation: noktaParla 1.5s ease-in-out infinite;
 }
 
 .sonraki-kart {
-  background:linear-gradient(145deg, #1a2338, #0f172a);
-  border-radius:var(--yuvarlak-buyuk);
-  padding:1.25rem;
-  border:2px solid var(--sari);
-  box-shadow:0 0 40px rgba(250,204,21,0.15), var(--golge);
-  position:relative;
-  overflow:hidden;
-  animation:kartParla 3s ease-in-out infinite;
+  background: linear-gradient(145deg, var(--arka-plan-3), var(--arka-plan-2));
+  border-radius: var(--yuvarlak-buyuk); padding: 1.25rem;
+  border: 2px solid var(--sari);
+  box-shadow: 0 0 40px rgba(250,204,21,0.15), var(--golge);
+  position: relative; overflow: hidden;
+  animation: kartParla 3s ease-in-out infinite;
 }
 @keyframes kartParla {
-  0%, 100% { box-shadow:0 0 40px rgba(250,204,21,0.15), var(--golge); }
-  50%      { box-shadow:0 0 60px rgba(250,204,21,0.3), var(--golge); }
+  0%, 100% { box-shadow: 0 0 40px rgba(250,204,21,0.15), var(--golge); }
+  50% { box-shadow: 0 0 60px rgba(250,204,21,0.3), var(--golge); }
 }
 .sonraki-kart::before {
-  content:'';
-  position:absolute;
-  top:0; left:-100%;
-  width:100%; height:100%;
-  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-  animation:parlama 4s linear infinite;
-  pointer-events:none;
+  content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: parlama 4s linear infinite; pointer-events: none;
 }
-@keyframes parlama {
-  0%   { left:-100%; }
-  100% { left:200%; }
-}
-
-.sonraki-icerik {
-  display:flex;
-  align-items:center;
-  gap:1.25rem;
-  flex-wrap:wrap;
-  position:relative;
-  z-index:1;
-}
-
+@keyframes parlama { 0% { left: -100%; } 100% { left: 200%; } }
+.sonraki-icerik { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; position: relative; z-index: 1; }
 .sonraki-tarih {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  min-width:100px;
-  padding:0.75rem 0.9rem;
-  background:linear-gradient(145deg, #0a0f1c, #1a2338);
-  border-radius:var(--yuvarlak);
-  border:1px solid var(--sari);
-  position:relative;
-  overflow:hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-width: 100px; padding: 0.75rem 0.9rem;
+  background: linear-gradient(145deg, var(--arka-plan), var(--arka-plan-3));
+  border-radius: var(--yuvarlak); border: 1px solid var(--sari);
+  position: relative; overflow: hidden;
 }
 .sonraki-tarih::after {
-  content:'';
-  position:absolute;
-  top:0; left:0; right:0;
-  height:3px;
-  background:linear-gradient(90deg, var(--sari), var(--mavi));
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sari), var(--mavi));
 }
-.sonraki-gun {
-  font-size:2rem;
-  font-weight:900;
-  color:var(--sari);
-  line-height:1;
-  text-shadow:0 0 16px rgba(250,204,21,0.4);
-  letter-spacing:-1px;
-}
-.sonraki-ay {
-  font-size:0.75rem;
-  text-transform:uppercase;
-  letter-spacing:2px;
-  color:var(--metin-gri);
-  font-weight:700;
-  margin-top:0.2rem;
-}
-.sonraki-saat {
-  font-size:0.9rem;
-  font-weight:800;
-  color:var(--mavi);
-  margin-top:0.35rem;
-  background:rgba(56,189,248,0.12);
-  padding:0.15rem 0.6rem;
-  border-radius:6px;
-}
-
-.sonraki-bilgi { flex:1; min-width:200px; }
-.sonraki-takimlar {
-  font-size:1.15rem;
-  font-weight:900;
-  color:var(--metin-beyaz);
-  margin-bottom:0.3rem;
-  display:flex;
-  align-items:center;
-  gap:0.5rem;
-  flex-wrap:wrap;
-}
+.sonraki-gun { font-size: 2rem; font-weight: 900; color: var(--sari); line-height: 1; text-shadow: 0 0 16px rgba(250,204,21,0.4); letter-spacing: -1px; }
+.sonraki-ay { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--metin-gri); font-weight: 700; margin-top: 0.2rem; }
+.sonraki-saat { font-size: 0.9rem; font-weight: 800; color: var(--mavi); margin-top: 0.35rem; background: rgba(56,189,248,0.12); padding: 0.15rem 0.6rem; border-radius: 6px; }
+.sonraki-bilgi { flex: 1; min-width: 200px; }
+.sonraki-takimlar { font-size: 1.15rem; font-weight: 900; color: var(--metin-beyaz); margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .sonraki-takimlar .evdep {
-  font-size:0.7rem;
-  padding:0.15rem 0.5rem;
-  background:rgba(56,189,248,0.15);
-  border:1px solid rgba(56,189,248,0.3);
-  border-radius:var(--yuvarlak-tam);
-  color:var(--mavi);
-  font-weight:700;
+  font-size: 0.7rem; padding: 0.15rem 0.5rem;
+  background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3);
+  border-radius: var(--yuvarlak-tam); color: var(--mavi); font-weight: 700;
 }
-.sonraki-turnuva {
-  font-size:0.75rem;
-  color:var(--metin-gri);
-  text-transform:uppercase;
-  letter-spacing:1px;
-  font-weight:600;
-  margin-bottom:0.5rem;
-}
-.sonraki-tam-tarih {
-  font-size:0.8rem;
-  color:var(--metin-gri);
-  margin-bottom:0.75rem;
-}
+.sonraki-turnuva { font-size: 0.75rem; color: var(--metin-gri); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 0.5rem; }
+.sonraki-tam-tarih { font-size: 0.8rem; color: var(--metin-gri); margin-bottom: 0.75rem; }
 
-.geri-sayim { display:flex; gap:0.4rem; flex-wrap:wrap; }
+.geri-sayim { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .gs-birim {
-  background:rgba(10,15,28,0.8);
-  border:1px solid var(--sinir);
-  border-radius:8px;
-  padding:0.4rem 0.7rem;
-  text-align:center;
-  min-width:52px;
+  background: rgba(10,15,28,0.8); border: 1px solid var(--sinir);
+  border-radius: 8px; padding: 0.4rem 0.7rem; text-align: center; min-width: 54px;
 }
-.gs-sayi {
-  display:block;
-  font-size:1.1rem;
-  font-weight:900;
-  color:var(--sari);
-  line-height:1;
-}
-.gs-etiket {
-  display:block;
-  font-size:0.6rem;
-  text-transform:uppercase;
-  letter-spacing:1px;
-  color:var(--metin-gri);
-  margin-top:0.2rem;
-}
+html[data-tema="acik"] .gs-birim { background: rgba(15,23,42,0.05); }
+.gs-sayi { display: block; font-size: 1.15rem; font-weight: 900; color: var(--sari); line-height: 1; font-variant-numeric: tabular-nums; }
+.gs-etiket { display: block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: var(--metin-gri); margin-top: 0.2rem; }
 
-/* GRAFİK */
+/* ============================================================
+   13. GRAFİK ALANI
+   ============================================================ */
 .grafik-alan {
-  background:var(--kart);
-  border-radius:var(--yuvarlak-buyuk);
-  padding:1.25rem;
-  margin-bottom:1rem;
-  border:1px solid var(--sinir);
-  box-shadow:var(--golge);
+  background: var(--kart); border-radius: var(--yuvarlak-buyuk);
+  padding: 1.25rem; margin-bottom: 1rem;
+  border: 1px solid var(--sinir); box-shadow: var(--golge);
 }
 .grafik-baslik {
-  font-size:0.95rem;
-  font-weight:700;
-  color:var(--metin-beyaz);
-  margin-bottom:0.75rem;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:0.5rem;
+  font-size: 0.95rem; font-weight: 700; color: var(--metin-beyaz);
+  margin-bottom: 0.75rem; display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 0.5rem;
 }
-.grafik-baslik small { color:var(--metin-gri); font-weight:500; font-size:0.75rem; }
-.chart-container { position:relative; height:300px; width:100%; }
+.grafik-baslik small { color: var(--metin-gri); font-weight: 500; font-size: 0.75rem; }
+.chart-container { position: relative; height: 300px; width: 100%; }
+.chart-container.kucuk { height: 220px; }
+.chart-container.buyuk { height: 380px; }
 
-/* MAÇ LİSTESİ + FİLTRE */
-.mac-liste-ust {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:0.75rem;
-  flex-wrap:wrap;
-  gap:0.5rem;
-}
-.mac-filtre-grup {
-  display:flex;
-  gap:0.35rem;
-  flex-wrap:wrap;
-}
+/* ============================================================
+   14. MAÇ LİSTESİ + FİLTRE
+   ============================================================ */
+.mac-liste-ust { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+.mac-filtre-grup { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 .mac-filtre-btn {
-  padding:0.4rem 0.85rem;
-  border-radius:var(--yuvarlak-tam);
-  background:var(--kart-hover);
-  border:1px solid var(--sinir);
-  color:var(--metin-gri);
-  font-size:0.75rem;
-  font-weight:700;
-  cursor:pointer;
-  transition:all var(--gecis);
-  display:inline-flex;
-  align-items:center;
-  gap:0.3rem;
+  padding: 0.4rem 0.85rem; border-radius: var(--yuvarlak-tam);
+  background: var(--kart-hover); border: 1px solid var(--sinir);
+  color: var(--metin-gri); font-size: 0.75rem; font-weight: 700;
+  cursor: pointer; transition: all var(--gecis-hizli);
+  display: inline-flex; align-items: center; gap: 0.3rem;
 }
-.mac-filtre-btn:hover {
-  border-color:var(--mavi);
-  color:var(--metin-beyaz);
-  transform:translateY(-1px);
-}
-.mac-filtre-btn.aktif {
-  background:linear-gradient(135deg, var(--mavi), var(--mavi-koyu));
-  color:#0a0f1c;
-  border-color:transparent;
-  box-shadow:0 4px 12px rgba(56,189,248,0.3);
-}
-.mac-filtre-btn .sayac {
-  font-size:0.65rem;
-  padding:0.05rem 0.4rem;
-  border-radius:var(--yuvarlak-tam);
-  background:rgba(10,15,28,0.4);
-  font-weight:800;
-}
-.mac-filtre-btn.aktif .sayac {
-  background:rgba(10,15,28,0.25);
-}
+.mac-filtre-btn:hover { border-color: var(--mavi); color: var(--metin-beyaz); transform: translateY(-1px); }
+.mac-filtre-btn.aktif { background: linear-gradient(135deg, var(--mavi), var(--mavi-koyu)); color: #0a0f1c; border-color: transparent; box-shadow: 0 4px 12px rgba(56,189,248,0.3); }
+.mac-filtre-btn .sayac { font-size: 0.65rem; padding: 0.05rem 0.4rem; border-radius: var(--yuvarlak-tam); background: rgba(10,15,28,0.4); font-weight: 800; }
+.mac-filtre-btn.aktif .sayac { background: rgba(10,15,28,0.25); }
 
-.mac-listesi { display:flex; flex-direction:column; gap:0.5rem; }
+.mac-listesi { display: flex; flex-direction: column; gap: 0.5rem; }
 .mac-kart {
-  background:var(--kart);
-  border-radius:var(--yuvarlak);
-  padding:0.75rem 1rem;
-  display:flex;
-  align-items:center;
-  gap:0.75rem;
-  border-left:4px solid var(--mavi);
-  transition:all var(--gecis);
-  flex-wrap:wrap;
+  background: var(--kart); border-radius: var(--yuvarlak);
+  padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem;
+  border-left: 4px solid var(--mavi); transition: all var(--gecis);
+  flex-wrap: wrap; cursor: pointer;
 }
-.mac-kart:hover { transform:translateX(4px); box-shadow:var(--golge); }
-.mac-kart.bitti { border-left-color:var(--yesil-koyu); }
-.mac-kart.magbubiyet { border-left-color:var(--kirmizi); }
-.mac-kart.berabere { border-left-color:var(--sari); }
-.mac-kart.gelecek { border-left-color:var(--mavi); }
-.mac-kart.siradaki {
-  border-left-color:var(--sari);
-  background:linear-gradient(90deg, rgba(250,204,21,0.05), var(--kart) 30%);
-}
-.mac-tarih {
-  min-width:70px;
-  text-align:center;
-  font-size:0.7rem;
-  color:var(--metin-gri);
-  font-weight:600;
-}
-.mac-tarih .gun { font-size:1.15rem; font-weight:900; color:var(--metin-beyaz); display:block; line-height:1.1; }
-.mac-takimlar {
-  flex:1;
-  min-width:180px;
-  font-weight:700;
-  color:var(--metin-beyaz);
-  font-size:0.9rem;
-}
+.mac-kart:hover { transform: translateX(4px); box-shadow: var(--golge); }
+.mac-kart.bitti { border-left-color: var(--yesil-koyu); }
+.mac-kart.magbubiyet { border-left-color: var(--kirmizi); }
+.mac-kart.berabere { border-left-color: var(--sari); }
+.mac-kart.gelecek { border-left-color: var(--mavi); }
+.mac-kart.siradaki { border-left-color: var(--sari); background: linear-gradient(90deg, rgba(250,204,21,0.05), var(--kart) 30%); }
+.mac-tarih { min-width: 70px; text-align: center; font-size: 0.7rem; color: var(--metin-gri); font-weight: 600; }
+.mac-tarih .gun { font-size: 1.15rem; font-weight: 900; color: var(--metin-beyaz); display: block; line-height: 1.1; }
+.mac-takimlar { flex: 1; min-width: 180px; font-weight: 700; color: var(--metin-beyaz); font-size: 0.9rem; }
 .mac-skor {
-  font-size:1.05rem;
-  font-weight:900;
-  padding:0.25rem 0.7rem;
-  border-radius:8px;
-  min-width:55px;
-  text-align:center;
+  font-size: 1.05rem; font-weight: 900; padding: 0.25rem 0.7rem;
+  border-radius: 8px; min-width: 55px; text-align: center; font-variant-numeric: tabular-nums;
 }
-.mac-skor.kazandi { color:var(--yesil); background:rgba(74,222,128,0.1); }
-.mac-skor.kaybetti { color:var(--kirmizi-acik); background:rgba(239,68,68,0.1); }
-.mac-skor.berabere { color:var(--sari); background:rgba(250,204,21,0.1); }
+.mac-skor.kazandi { color: var(--yesil); background: rgba(74,222,128,0.1); }
+.mac-skor.kaybetti { color: var(--kirmizi-acik); background: rgba(239,68,68,0.1); }
+.mac-skor.berabere { color: var(--sari); background: rgba(250,204,21,0.1); }
 .mac-puan-rozet {
-  font-size:0.65rem;
-  font-weight:800;
-  padding:0.15rem 0.45rem;
-  border-radius:var(--yuvarlak-tam);
-  margin-left:0.4rem;
-  display:inline-block;
+  font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.45rem;
+  border-radius: var(--yuvarlak-tam); margin-left: 0.4rem; display: inline-block;
 }
-.mac-puan-rozet.p3 { background:rgba(74,222,128,0.15); color:var(--yesil); }
-.mac-puan-rozet.p1 { background:rgba(250,204,21,0.15); color:var(--sari); }
-.mac-puan-rozet.p0 { background:rgba(239,68,68,0.15); color:var(--kirmizi-acik); }
-.mac-puan-rozet.gelecek { background:rgba(56,189,248,0.15); color:var(--mavi); }
-.mac-puan-rozet.siradaki { background:rgba(250,204,21,0.2); color:var(--sari); animation:noktaParla 1.5s ease-in-out infinite; }
+.mac-puan-rozet.p3 { background: rgba(74,222,128,0.15); color: var(--yesil); }
+.mac-puan-rozet.p1 { background: rgba(250,204,21,0.15); color: var(--sari); }
+.mac-puan-rozet.p0 { background: rgba(239,68,68,0.15); color: var(--kirmizi-acik); }
+.mac-puan-rozet.gelecek { background: rgba(56,189,248,0.15); color: var(--mavi); }
+.mac-puan-rozet.siradaki { background: rgba(250,204,21,0.2); color: var(--sari); animation: noktaParla 1.5s ease-in-out infinite; }
 
-/* YÜKLENİYOR */
-.yukleniyor { text-align:center; padding:2.5rem 1rem; color:var(--metin-gri); }
-.donen {
-  display:inline-block;
-  width:32px; height:32px;
-  border:4px solid var(--sinir);
-  border-top-color:var(--mavi);
-  border-radius:50%;
-  animation:spin 0.9s linear infinite;
-  margin-bottom:0.75rem;
+/* ============================================================
+   15. İSTATİSTİK KARTLARI
+   ============================================================ */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+.stat-kart {
+  background: var(--kart); border-radius: var(--yuvarlak);
+  padding: 1rem; border: 1px solid var(--sinir);
+  transition: all var(--gecis); position: relative; overflow: hidden;
 }
-@keyframes spin { to { transform:rotate(360deg); } }
+.stat-kart::before {
+  content: ''; position: absolute; top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, var(--mavi), var(--kirmizi)); opacity: 0.6;
+}
+.stat-kart:hover { transform: translateY(-3px); box-shadow: var(--golge); border-color: var(--mavi); }
+.stat-kart .stat-etiket {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--metin-gri); font-weight: 700; margin-bottom: 0.4rem;
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.stat-kart .stat-deger { font-size: 1.6rem; font-weight: 900; color: var(--metin-beyaz); line-height: 1; letter-spacing: -1px; }
+.stat-kart .stat-deger.kucuk { font-size: 1.1rem; }
+.stat-kart .stat-alt { font-size: 0.72rem; color: var(--metin-gri); margin-top: 0.3rem; }
+.stat-kart.vurgu-sari .stat-deger { color: var(--sari); }
+.stat-kart.vurgu-yesil .stat-deger { color: var(--yesil); }
+.stat-kart.vurgu-kirmizi .stat-deger { color: var(--kirmizi-acik); }
+.stat-kart.vurgu-mavi .stat-deger { color: var(--mavi); }
+.stat-kart.vurgu-mor .stat-deger { color: var(--mor); }
+
+/* ============================================================
+   16. EV/DIŞI TABLOSU
+   ============================================================ */
+.evdep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 700px) { .evdep-grid { grid-template-columns: 1fr; } }
+.evdep-kutu { background: var(--arka-plan-2); border-radius: var(--yuvarlak); padding: 1rem; border: 1px solid var(--sinir); }
+.evdep-baslik { font-size: 0.85rem; font-weight: 800; color: var(--metin-beyaz); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem; }
+.evdep-satirlar { display: flex; flex-direction: column; gap: 0.4rem; }
+.evdep-satir {
+  display: flex; justify-content: space-between; font-size: 0.8rem;
+  padding: 0.35rem 0.5rem; border-radius: 6px; background: rgba(15,23,42,0.4);
+}
+html[data-tema="acik"] .evdep-satir { background: rgba(15,23,42,0.04); }
+.evdep-satir strong { color: var(--sari); }
+
+/* ============================================================
+   17. KARŞILAŞTIRMA
+   ============================================================ */
+.karsilastirma-secim { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: center; margin-bottom: 1rem; }
+.karsilastirma-secim select {
+  width: 100%; padding: 0.65rem 0.9rem; border-radius: var(--yuvarlak);
+  background: var(--kart); border: 1px solid var(--sinir);
+  color: var(--metin-beyaz); font-size: 0.85rem; font-family: inherit; font-weight: 600; cursor: pointer;
+}
+.karsilastirma-secim select:focus { outline: none; border-color: var(--mavi); box-shadow: 0 0 0 3px rgba(56,189,248,0.15); }
+.karsilastirma-vs { font-size: 1.2rem; font-weight: 900; color: var(--sari); padding: 0 0.5rem; }
+.karsilastirma-satir {
+  display: grid; grid-template-columns: 1fr 2fr 1fr;
+  gap: 0.5rem; padding: 0.7rem 0; border-bottom: 1px solid var(--sinir); align-items: center;
+}
+.karsilastirma-satir:last-child { border-bottom: none; }
+.karsilastirma-deger { font-weight: 800; font-size: 0.95rem; text-align: center; color: var(--metin-beyaz); font-variant-numeric: tabular-nums; }
+.karsilastirma-deger.kazanan { color: var(--yesil); }
+.karsilastirma-deger.kaybeden { color: var(--kirmizi-acik); }
+.karsilastirma-etiket { text-align: center; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--metin-gri); font-weight: 700; }
+.karsilastirma-bar { height: 6px; border-radius: var(--yuvarlak-tam); background: var(--sinir); overflow: hidden; margin-top: 0.3rem; display: flex; }
+.karsilastirma-bar .bar-sol { background: var(--mavi); height: 100%; transition: width 0.6s ease; }
+.karsilastirma-bar .bar-sag { background: var(--kirmizi-acik); height: 100%; transition: width 0.6s ease; }
+
+/* ============================================================
+   18. MODAL
+   ============================================================ */
+.modal-arka {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  z-index: 1000; display: none; align-items: center; justify-content: center;
+  padding: 1rem; animation: modalFade 0.2s ease;
+}
+.modal-arka.acik { display: flex; }
+@keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--arka-plan-2); border-radius: var(--yuvarlak-buyuk);
+  border: 1px solid var(--sinir); max-width: 560px; width: 100%;
+  max-height: 90vh; overflow-y: auto; box-shadow: var(--golge-buyuk);
+  animation: modalGir 0.3s ease;
+}
+@keyframes modalGir { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+.modal-ust {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--sinir);
+  position: sticky; top: 0; background: var(--arka-plan-2); z-index: 2;
+}
+.modal-baslik { font-size: 1rem; font-weight: 800; color: var(--metin-beyaz); display: flex; align-items: center; gap: 0.5rem; }
+.modal-kapat {
+  width: 32px; height: 32px; border-radius: 50%; background: transparent;
+  border: none; color: var(--metin-gri); cursor: pointer; font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center; transition: all var(--gecis-hizli);
+}
+.modal-kapat:hover { background: var(--kart); color: var(--metin-beyaz); }
+.modal-icerik { padding: 1.25rem; }
+
+/* ============================================================
+   19. TOAST BİLDİRİMLERİ
+   ============================================================ */
+.toast-alan {
+  position: fixed; bottom: 1rem; right: 1rem; z-index: 1100;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  max-width: 360px; pointer-events: none;
+}
+.toast {
+  background: var(--kart); border: 1px solid var(--sinir);
+  border-left: 4px solid var(--mavi); border-radius: var(--yuvarlak);
+  padding: 0.75rem 1rem; color: var(--metin-acik);
+  box-shadow: var(--golge); font-size: 0.82rem;
+  display: flex; align-items: center; gap: 0.6rem;
+  pointer-events: auto; animation: toastGir 0.3s ease; min-width: 240px;
+}
+@keyframes toastGir { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.toast.cikis { animation: toastCikis 0.3s ease forwards; }
+@keyframes toastCikis { to { transform: translateX(120%); opacity: 0; } }
+.toast.basari { border-left-color: var(--yesil); }
+.toast.hata { border-left-color: var(--kirmizi-acik); }
+.toast.uyari { border-left-color: var(--sari); }
+.toast.bilgi { border-left-color: var(--mavi); }
+.toast .toast-ikon { font-size: 1.1rem; }
+.toast .toast-metin { flex: 1; font-weight: 600; }
+
+/* ============================================================
+   20. YÜKLENİYOR / BOŞ / HATA
+   ============================================================ */
+.yukleniyor { text-align: center; padding: 2.5rem 1rem; color: var(--metin-gri); }
+.donen {
+  display: inline-block; width: 32px; height: 32px;
+  border: 4px solid var(--sinir); border-top-color: var(--mavi);
+  border-radius: 50%; animation: spin 0.9s linear infinite; margin-bottom: 0.75rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--skeleton-1) 25%, var(--skeleton-2) 50%, var(--skeleton-1) 75%);
+  background-size: 200% 100%;
+  animation: skeletonParlak 1.5s ease-in-out infinite;
+  border-radius: var(--yuvarlak-kucuk);
+}
+@keyframes skeletonParlak { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-satir { height: 42px; margin-bottom: 0.4rem; }
 
 .hata-kutu {
-  max-width:600px;
-  margin:1rem auto;
-  padding:1.25rem;
-  background:rgba(248,113,113,0.08);
-  border:1px solid rgba(248,113,113,0.3);
-  border-radius:var(--yuvarlak);
-  text-align:center;
-  color:#fca5a5;
+  max-width: 600px; margin: 1rem auto; padding: 1.25rem;
+  background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3);
+  border-radius: var(--yuvarlak); text-align: center; color: #fca5a5;
 }
-.hata-kutu strong { display:block; font-size:1rem; margin-bottom:0.4rem; color:#f87171; }
-.hata-kutu small { display:block; margin-top:0.5rem; color:var(--metin-gri); font-size:0.75rem; }
+.hata-kutu strong { display: block; font-size: 1rem; margin-bottom: 0.4rem; color: #f87171; }
+.hata-kutu small { display: block; margin-top: 0.5rem; color: var(--metin-gri); font-size: 0.75rem; }
+.hata-kutu .btn { margin-top: 0.75rem; }
 
 .bos-kutu {
-  text-align:center;
-  padding:1.5rem;
-  color:var(--metin-gri);
-  background:var(--kart);
-  border-radius:var(--yuvarlak);
-  border:1px dashed var(--sinir);
-  font-size:0.85rem;
+  text-align: center; padding: 1.5rem; color: var(--metin-gri);
+  background: var(--kart); border-radius: var(--yuvarlak);
+  border: 1px dashed var(--sinir); font-size: 0.85rem;
 }
 
+/* ============================================================
+   21. FOOTER
+   ============================================================ */
 footer {
-  text-align:center;
-  padding:1.5rem 1rem;
-  color:var(--metin-gri-koyu);
-  font-size:0.8rem;
-  border-top:1px solid var(--sinir);
-  max-width:1100px;
-  margin:0 auto;
+  text-align: center; padding: 1.5rem 1rem;
+  color: var(--metin-gri-koyu); font-size: 0.8rem;
+  border-top: 1px solid var(--sinir);
+  max-width: 1280px; margin: 0 auto;
 }
-footer .kalp { color:var(--kirmizi-acik); }
+footer .kalp { color: var(--kirmizi-acik); }
+footer .footer-linkler { display: flex; gap: 1rem; justify-content: center; margin-top: 0.5rem; flex-wrap: wrap; }
+footer .footer-linkler a { color: var(--metin-gri); }
+footer .footer-linkler a:hover { color: var(--mavi); }
 
-/* HATA KUTUSU */
-#hata-kutusu {
-  cursor:pointer;
-}
-#hata-kutusu::after {
-  content:' (kapatmak için tıkla)';
-  opacity:.7;
-  font-size:10px;
+/* ============================================================
+   22. İSTATİSTİK ÇUBUKLARI
+   ============================================================ */
+.cubuk-liste { display: flex; flex-direction: column; gap: 0.6rem; }
+.cubuk-satir { display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; }
+.cubuk-etiket { min-width: 90px; color: var(--metin-gri); font-weight: 600; font-size: 0.75rem; }
+.cubuk-arka { flex: 1; height: 8px; background: var(--sinir); border-radius: var(--yuvarlak-tam); overflow: hidden; position: relative; }
+.cubuk-dolu { height: 100%; border-radius: var(--yuvarlak-tam); background: linear-gradient(90deg, var(--mavi), var(--kirmizi)); transition: width 0.8s ease; }
+.cubuk-deger { min-width: 40px; text-align: right; font-weight: 800; color: var(--metin-beyaz); font-variant-numeric: tabular-nums; }
+
+.klavye-kisayol {
+  display: inline-block; padding: 0.15rem 0.4rem; border-radius: 4px;
+  background: var(--kart); border: 1px solid var(--sinir);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  font-weight: 700; color: var(--metin-acik);
 }
 
-@media (max-width:600px) {
-  .takim-baslik { flex-direction:column; text-align:center; }
-  .takim-stats-mini { justify-content:center; }
-  .mac-kart { flex-direction:column; align-items:stretch; text-align:center; }
-  .mac-tarih { min-width:auto; }
-  .chart-container { height:220px; }
-  .balon-alan { grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); }
-  .balon { font-size:0.7rem; padding:0.35rem 0.5rem; }
-  .sonraki-icerik { gap:0.75rem; }
-  .sonraki-takimlar { font-size:1rem; }
-  .sonraki-gun { font-size:1.6rem; }
-  .gs-birim { min-width:44px; padding:0.3rem 0.5rem; }
-  .gs-sayi { font-size:0.95rem; }
-  .puan-tablo { font-size:0.7rem; min-width:560px; }
-  .puan-tablo tbody td { padding:0.5rem 0.25rem; }
-  .form-nokta { width:14px; height:14px; font-size:0.55rem; }
-  .mac-liste-ust { justify-content:center; }
-  .mac-filtre-grup { width:100%; justify-content:center; }
+/* ============================================================
+   23. RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .ust-logo .logo-metin { display: none; }
+  .stat-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+@media (max-width: 600px) {
+  .takim-baslik { flex-direction: column; text-align: center; }
+  .takim-stats-mini { justify-content: center; }
+  .takim-aksiyonlar { margin-left: 0; width: 100%; justify-content: center; }
+  .mac-kart { flex-direction: column; align-items: stretch; text-align: center; }
+  .mac-tarih { min-width: auto; }
+  .chart-container { height: 240px; }
+  .balon-alan { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+  .balon { font-size: 0.72rem; padding: 0.4rem 0.5rem; }
+  .sonraki-icerik { gap: 0.75rem; }
+  .sonraki-takimlar { font-size: 1rem; }
+  .sonraki-gun { font-size: 1.6rem; }
+  .gs-birim { min-width: 46px; padding: 0.3rem 0.5rem; }
+  .gs-sayi { font-size: 1rem; }
+  .puan-tablo { font-size: 0.7rem; min-width: 600px; }
+  .puan-tablo tbody td { padding: 0.5rem 0.25rem; }
+  .form-nokta { width: 15px; height: 15px; font-size: 0.55rem; }
+  .mac-liste-ust { justify-content: center; }
+  .mac-filtre-grup { width: 100%; justify-content: center; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .karsilastirma-secim { grid-template-columns: 1fr; }
+  .karsilastirma-vs { text-align: center; }
+  .toast-alan { left: 1rem; right: 1rem; max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 </style>
 </head>
 <body>
-<div id="hata-kutusu" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:10px;font-size:12px;display:none;font-family:monospace;white-space:pre-wrap;"></div>
+
+<!-- Hata kutusu -->
+<div id="hata-kutusu" role="alert" aria-live="assertive"></div>
+
+<!-- Üst bar -->
+<div class="ust-bar">
+  <div class="ust-bar-icerik">
+    <div class="ust-logo">
+      <span class="logo-emojisi">⚽</span>
+      <span class="logo-metin">Premier Lig Takip</span>
+    </div>
+
+    <div class="arama-alan">
+      <span class="arama-ikon">🔍</span>
+      <input type="search" class="arama-input" id="arama-input" placeholder="Takım ara..." autocomplete="off" aria-label="Takım ara">
+      <button class="arama-temizle" id="arama-temizle" aria-label="Aramayı temizle">✕</button>
+    </div>
+
+    <div class="ust-araclar">
+      <button class="arac-buton" id="favoriler-buton" title="Favorilerim" aria-label="Favorilerim">
+        ⭐<span class="rozet-sayi gizli" id="favori-sayi">0</span>
+      </button>
+      <button class="arac-buton" id="tema-buton" title="Tema değiştir" aria-label="Tema değiştir">🌙</button>
+      <button class="arac-buton" id="kisayol-buton" title="Klavye kısayolları" aria-label="Klavye kısayolları">⌨️</button>
+      <button class="arac-buton" id="disa-aktar-buton" title="Veriyi dışa aktar" aria-label="Veriyi dışa aktar">💾</button>
+      <button class="arac-buton" id="yenile-buton" title="Verileri yenile" aria-label="Verileri yenile">🔄</button>
+      <button class="arac-buton" id="api-secim-buton" title="API kaynağını seç" aria-label="API kaynağını seç">🔌</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sekmeler -->
+<nav class="sekmeler" role="tablist" aria-label="Ana sekmeler">
+  <button class="sekme aktif" data-sekme="takimlar" role="tab" aria-selected="true">🏟️ Takımlar</button>
+  <button class="sekme" data-sekme="puan" role="tab" aria-selected="false">📊 Puan Durumu</button>
+  <button class="sekme" data-sekme="istatistik" role="tab" aria-selected="false">📈 İstatistikler</button>
+  <button class="sekme" data-sekme="karsilastir" role="tab" aria-selected="false">⚖️ Karşılaştır</button>
+  <button class="sekme" data-sekme="favoriler" role="tab" aria-selected="false">⭐ Favoriler</button>
+</nav>
+
 <header>
   <h1>⚽ Premier Lig Takım Takip</h1>
-  <p class="alt-baslik">Takım seç · Puan grafiğini gör · Maç sonuçlarını incele</p>
-  <div class="sezon-rozet" id="sezon-rozet">Sezon yükleniyor...</div>
+  <p class="alt-baslik">Takım seç · Puan grafiğini gör · Maç sonuçlarını incele · İstatistikleri karşılaştır</p>
+  <div class="rozet-grubu">
+    <div class="sezon-rozet" id="sezon-rozet">📅 Sezon yükleniyor...</div>
+    <div class="sezon-rozet" id="api-durum-rozet" style="display:none;">🔌 API</div>
+  </div>
 </header>
 
-<section class="bolum">
-  <div class="bolum-ust">
-    <div class="bolum-baslik">🏟️ Premier Lig Takımları</div>
-    <button class="puan-durum-buton" id="puan-durum-buton">📊 Lig Puan Durumu</button>
-  </div>
-
-  <div class="puan-tablo-alan" id="puan-tablo-alan">
-    <div id="puan-tablo-icerik">
-      <div class="yukleniyor"><div class="donen"></div><div>Puan durumu yükleniyor...</div></div>
+<!-- SEKME: TAKIMLAR -->
+<main id="sekme-takimlar" class="sekme-icerik" role="tabpanel">
+  <section class="bolum">
+    <div class="bolum-ust">
+      <div class="bolum-baslik">🏟️ Premier Lig Takımları <small id="takim-sayisi"></small></div>
+      <button class="btn btn-sari" id="puan-durum-buton">📊 Lig Puan Durumu</button>
     </div>
-  </div>
 
-  <div class="balon-alan" id="balon-alan">
-    <div class="yukleniyor"><div class="donen"></div><div>Takımlar yükleniyor...</div></div>
-  </div>
-</section>
-
-<section class="bolum" id="takim-detay-alan" style="display:none;">
-  <div class="takim-baslik" id="takim-baslik"></div>
-
-  <div class="sonraki-alan" id="sonraki-alan" style="display:none;">
-    <div class="sonraki-etiket">⚡ Sıradaki Maç</div>
-    <div class="sonraki-kart" id="sonraki-kart"></div>
-  </div>
-
-  <div class="grafik-alan">
-    <div class="grafik-baslik">
-      <span>📈 Kümülatif Puan Grafiği</span>
-      <small id="grafik-bilgi">Sezon başından itibaren</small>
-    </div>
-    <div class="chart-container">
-      <canvas id="puan-grafigi"></canvas>
-    </div>
-  </div>
-
-  <div class="grafik-alan">
-    <div class="mac-liste-ust">
-      <div class="grafik-baslik" style="margin:0;border:0;padding:0;">
-        <span>📅 Maçlar</span>
-      </div>
-      <div class="mac-filtre-grup">
-        <button class="mac-filtre-btn aktif" data-mfiltre="tumu">
-          📋 Tümü <span class="sayac" id="sayac-tumu">0</span>
-        </button>
-        <button class="mac-filtre-btn" data-mfiltre="gelecek">
-          ⚡ Sıradaki Maçlar <span class="sayac" id="sayac-gelecek">0</span>
-        </button>
-        <button class="mac-filtre-btn" data-mfiltre="gecmis">
-          ✅ Geçmiş Maçlar <span class="sayac" id="sayac-gecmis">0</span>
-        </button>
+    <div class="puan-tablo-alan" id="puan-tablo-alan">
+      <div id="puan-tablo-icerik">
+        <div class="yukleniyor"><div class="donen"></div><div>Puan durumu yükleniyor...</div></div>
       </div>
     </div>
-    <div class="mac-listesi" id="mac-listesi"></div>
+
+    <div class="balon-alan" id="balon-alan">
+      <div class="yukleniyor"><div class="donen"></div><div>Takımlar yükleniyor...</div></div>
+    </div>
+  </section>
+
+  <section class="bolum" id="takim-detay-alan" style="display:none;">
+    <div class="takim-baslik" id="takim-baslik"></div>
+
+    <div class="stat-grid" id="takim-stat-grid"></div>
+
+    <div class="sonraki-alan" id="sonraki-alan" style="display:none;">
+      <div class="sonraki-etiket">⚡ Sıradaki Maç</div>
+      <div class="sonraki-kart" id="sonraki-kart"></div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="grafik-baslik">
+        <span>📈 Kümülatif Puan Grafiği</span>
+        <small id="grafik-bilgi">Sezon başından itibaren</small>
+      </div>
+      <div class="chart-container">
+        <canvas id="puan-grafigi"></canvas>
+      </div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="grafik-baslik">
+        <span>⚽ Gol & Form Analizi</span>
+      </div>
+      <div class="chart-container kucuk">
+        <canvas id="gol-grafigi"></canvas>
+      </div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="grafik-baslik">
+        <span>🏠 Ev / ✈️ Deplasman Performansı</span>
+      </div>
+      <div class="evdep-grid">
+        <div class="evdep-kutu">
+          <div class="evdep-baslik">🏠 Ev Sahibi</div>
+          <div class="evdep-satirlar" id="ev-satirlar"></div>
+        </div>
+        <div class="evdep-kutu">
+          <div class="evdep-baslik">✈️ Deplasman</div>
+          <div class="evdep-satirlar" id="dep-satirlar"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="mac-liste-ust">
+        <div class="grafik-baslik" style="margin:0;border:0;padding:0;">
+          <span>📅 Maçlar</span>
+        </div>
+        <div class="mac-filtre-grup">
+          <button class="mac-filtre-btn aktif" data-mfiltre="tumu">
+            📋 Tümü <span class="sayac" id="sayac-tumu">0</span>
+          </button>
+          <button class="mac-filtre-btn" data-mfiltre="gelecek">
+            ⚡ Sıradaki <span class="sayac" id="sayac-gelecek">0</span>
+          </button>
+          <button class="mac-filtre-btn" data-mfiltre="gecmis">
+            ✅ Geçmiş <span class="sayac" id="sayac-gecmis">0</span>
+          </button>
+        </div>
+      </div>
+      <div class="mac-listesi" id="mac-listesi"></div>
+    </div>
+  </section>
+</main>
+
+<!-- SEKME: PUAN DURUMU -->
+<main id="sekme-puan" class="sekme-icerik" style="display:none;" role="tabpanel">
+  <section class="bolum">
+    <div class="bolum-ust">
+      <div class="bolum-baslik">📊 Premier Lig Puan Durumu</div>
+      <button class="btn" id="puan-yenile">🔄 Yenile</button>
+    </div>
+    <div class="puan-tablo-alan acik" id="puan-tablo-alan-2">
+      <div id="puan-tablo-icerik-2">
+        <div class="yukleniyor"><div class="donen"></div><div>Puan durumu yükleniyor...</div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- SEKME: İSTATİSTİKLER -->
+<main id="sekme-istatistik" class="sekme-icerik" style="display:none;" role="tabpanel">
+  <section class="bolum">
+    <div class="bolum-ust">
+      <div class="bolum-baslik">📈 Sezon İstatistikleri</div>
+    </div>
+
+    <div class="stat-grid" id="lig-stat-grid">
+      <div class="stat-kart vurgu-mavi">
+        <div class="stat-etiket">🎮 Oynanan Maç</div>
+        <div class="stat-deger" id="lig-toplam-mac">—</div>
+      </div>
+      <div class="stat-kart vurgu-yesil">
+        <div class="stat-etiket">⚽ Atılan Gol</div>
+        <div class="stat-deger" id="lig-toplam-gol">—</div>
+        <div class="stat-alt" id="lig-gol-ort">—</div>
+      </div>
+      <div class="stat-kart vurgu-sari">
+        <div class="stat-etiket">🏆 Lider</div>
+        <div class="stat-deger kucuk" id="lig-lider">—</div>
+      </div>
+      <div class="stat-kart vurgu-kirmizi">
+        <div class="stat-etiket">📉 Son Sıra</div>
+        <div class="stat-deger kucuk" id="lig-son">—</div>
+      </div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="grafik-baslik"><span>⚽ En Golcü Takımlar</span><small>İlk 10</small></div>
+      <div class="cubuk-liste" id="golcu-listesi"></div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="grafik-baslik"><span>🛡️ En Az Gol Yiyen Takımlar</span><small>İlk 10</small></div>
+      <div class="cubuk-liste" id="savunma-listesi"></div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="grafik-baslik"><span>📊 Puan Dağılımı</span><small>Galibiyet / Beraberlik / Mağlubiyet</small></div>
+      <div class="chart-container kucuk">
+        <canvas id="lig-puan-grafigi"></canvas>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- SEKME: KARŞILAŞTIR -->
+<main id="sekme-karsilastir" class="sekme-icerik" style="display:none;" role="tabpanel">
+  <section class="bolum">
+    <div class="bolum-ust">
+      <div class="bolum-baslik">⚖️ Takım Karşılaştırma</div>
+    </div>
+
+    <div class="karsilastirma-secim">
+      <select id="karsilastir-a" aria-label="Birinci takım"></select>
+      <div class="karsilastirma-vs">VS</div>
+      <select id="karsilastir-b" aria-label="İkinci takım"></select>
+    </div>
+
+    <div class="grafik-alan">
+      <div id="karsilastirma-icerik">
+        <div class="bos-kutu">İki takım seçerek karşılaştırın.</div>
+      </div>
+    </div>
+
+    <div class="grafik-alan">
+      <div class="grafik-baslik"><span>📈 Kümülatif Puan Karşılaştırması</span></div>
+      <div class="chart-container">
+        <canvas id="karsilastirma-grafigi"></canvas>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- SEKME: FAVORİLER -->
+<main id="sekme-favoriler" class="sekme-icerik" style="display:none;" role="tabpanel">
+  <section class="bolum">
+    <div class="bolum-ust">
+      <div class="bolum-baslik">⭐ Favori Takımlarım</div>
+      <button class="btn btn-kirmizi" id="favorileri-temizle">🗑️ Hepsini Sil</button>
+    </div>
+    <div id="favoriler-icerik">
+      <div class="bos-kutu">Henüz favori takım eklemediniz. Takım baloncuklarındaki ⭐ simgesine tıklayarak ekleyebilirsiniz.</div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal -->
+<div class="modal-arka" id="modal-arka" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-ust">
+      <div class="modal-baslik" id="modal-baslik">Modal</div>
+      <button class="modal-kapat" id="modal-kapat" aria-label="Kapat">✕</button>
+    </div>
+    <div class="modal-icerik" id="modal-icerik"></div>
   </div>
-</section>
+</div>
+
+<!-- Toast alanı -->
+<div class="toast-alan" id="toast-alan" aria-live="polite"></div>
 
 <footer>
-  <p>Veriler football-data.org API'sinden alınmaktadır.</p>
-  <p style="margin-top:0.4rem;">Premier Lig tutkunları için <span class="kalp">❤</span> ile yapıldı.</p>
+  <p>Veriler <a href="https://www.api-football.com" target="_blank" rel="noopener">API-Football</a>, <a href="https://github.com/openfootball/football.json" target="_blank" rel="noopener">OpenFootball</a>, <a href="https://www.thesportsdb.com" target="_blank" rel="noopener">TheSportsDB</a> ve <a href="https://github.com/rezarahiminia/livescoreFootball" target="_blank" rel="noopener">livescoreFootball</a> üzerinden alınmaktadır.</p>
+  <div class="footer-linkler">
+    <span>Klavye: <span class="klavye-kisayol">/</span> ara · <span class="klavye-kisayol">T</span> tema · <span class="klavye-kisayol">R</span> yenile · <span class="klavye-kisayol">Esc</span> kapat</span>
+  </div>
+  <p style="margin-top:0.5rem;">Premier Lig tutkunları için <span class="kalp">❤</span> ile yapıldı.</p>
 </footer>
 
 <script>
 'use strict';
 
-/* ===================== HATA YAKALAMA ===================== */
-// Hata kutusunu kapatma
-const _hataKutusu = document.getElementById('hata-kutusu');
-if (_hataKutusu) {
-  _hataKutusu.addEventListener('click', e => {
-    e.currentTarget.style.display = 'none';
-    e.currentTarget.textContent = '';
-  });
-}
+/* ============================================================
+   MODÜL 1: SABİTLER
+   ============================================================ */
+const SABITLER = Object.freeze({
+  // API-Football
+  API_FOOTBALL_ANAHTARI: '8b57f4e0129a96c6eeacf29bd63b6e28',
+  API_FOOTBALL_TABAN: 'https://v3.football.api-sports.io',
+  API_FOOTBALL_LIG_ID: 39,
 
-// Genel hataları ekranda göster
-window.addEventListener('error', e => {
-  const kutu = document.getElementById('hata-kutusu');
-  if (kutu) {
-    kutu.style.display = 'block';
-    kutu.textContent += '❌ ' + (e.message || e.error) + '\n';
+  // OpenFootball
+  OPENFOOTBALL_TABAN: 'https://raw.githubusercontent.com/openfootball/football.json/master',
+
+  // TheSportsDB
+  THESPORTSDB_TABAN: 'https://www.thesportsdb.com/api/v1/json/3',
+  THESPORTSDB_LIG_ID: '4328',
+
+  // livescoreFootball
+  LIVESCORE_TABAN: 'https://worldcup26.ir/api',
+
+  ONBELLEK_SURESI: 30 * 60 * 1000,
+  MAKS_ISTEK_DENEMESI: 2,
+
+  AYLAR_KISA: ['OCA','ŞUB','MAR','NİS','MAY','HAZ','TEM','AĞU','EYL','EKİ','KAS','ARA'],
+  AYLAR_UZUN: ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],
+  GUNLER: ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'],
+
+  DURUMLAR: {
+    BITTI: ['FT', 'AET', 'PEN'],
+    CANLI: ['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'],
+    GELECEK: ['TBD', 'NS'],
+    IPTAL: ['PST', 'CANC', 'ABD', 'AWD', 'WO']
+  },
+
+  DEPO_ANAHTARLARI: {
+    TEMA: 'pl-takip-tema',
+    FAVORILER: 'pl-takip-favoriler',
+    SEKME: 'pl-takip-sekme',
+    SON_TAKIM: 'pl-takip-son-takim',
+    SEZON: 'pl-takip-sezon',
+    API_TERCIH: 'pl-takip-api-tercih'
   }
 });
 
-// Fetch hatalarını da yakala
-const _fetch = window.fetch;
-window.fetch = function(...args) {
-  return _fetch.apply(this, args)
-    .then(r => {
-      if (!r.ok) {
-        const kutu = document.getElementById('hata-kutusu');
-        if (kutu) {
-          kutu.style.display = 'block';
-          kutu.textContent += '⚠️ ' + args[0] + ' → HTTP ' + r.status + '\n';
-        }
-      }
-      return r;
-    })
-    .catch(err => {
-      const kutu = document.getElementById('hata-kutusu');
-      if (kutu) {
-        kutu.style.display = 'block';
-        kutu.textContent += '🔥 ' + err.message + '\n';
-      }
-      throw err;
+const ISTEK_BASLIKLARI = Object.freeze({
+  'x-apisports-key': SABITLER.API_FOOTBALL_ANAHTARI
+});
+
+/* ============================================================
+   MODÜL 2: YARDIMCILAR
+   ============================================================ */
+const $  = (s, k = document) => k.querySelector(s);
+const $$ = (s, k = document) => Array.from(k.querySelectorAll(s));
+
+const Yardimci = {
+  kacis(m) {
+    if (m === null || m === undefined) return '';
+    return String(m)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  },
+  tarihFormatla(t) {
+    if (!t) return { gun: '--', ay: '---', yil: '', tam: '—', saat: '--:--' };
+    const d = new Date(t);
+    if (isNaN(d.getTime())) return { gun: '--', ay: '---', yil: '', tam: '—', saat: '--:--' };
+    return {
+      gun: d.getDate().toString().padStart(2, '0'),
+      ay: SABITLER.AYLAR_KISA[d.getMonth()] || '---',
+      yil: d.getFullYear(),
+      tam: `${d.getDate()} ${SABITLER.AYLAR_UZUN[d.getMonth()]} ${d.getFullYear()}, ${SABITLER.GUNLER[d.getDay()]}`,
+      saat: `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+    };
+  },
+  geriSayimHesapla(hedef) {
+    const fark = new Date(hedef).getTime() - Date.now();
+    if (fark <= 0) return { gun: 0, saat: 0, dakika: 0, saniye: 0, gecti: true };
+    return {
+      gun: Math.floor(fark / 86400000),
+      saat: Math.floor((fark % 86400000) / 3600000),
+      dakika: Math.floor((fark % 3600000) / 60000),
+      saniye: Math.floor((fark % 60000) / 1000),
+      gecti: false
+    };
+  },
+  yuzde(p, t) { return !t ? 0 : Math.round((p / t) * 100); },
+  ortalama(t, a) { return !a ? 0 : +(t / a).toFixed(2); },
+  bekle(ms) { return new Promise(r => setTimeout(r, ms)); },
+  benzersiz(d) { return [...new Set(d)]; },
+  sirala(d, k, ters = false) {
+    return [...d].sort((a, b) => {
+      const av = typeof k === 'function' ? k(a) : a[k];
+      const bv = typeof k === 'function' ? k(b) : b[k];
+      if (av < bv) return ters ? 1 : -1;
+      if (av > bv) return ters ? -1 : 1;
+      return 0;
     });
+  },
+  csvOlustur(satirlar, basliklar) {
+    const k = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    return [basliklar.map(k).join(','), ...satirlar.map(s => s.map(k).join(','))].join('\n');
+  },
+  indir(icerik, ad, tip = 'text/plain') {
+    const blob = new Blob([icerik], { type: tip });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = ad;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
+  debounce(fn, ms = 250) {
+    let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  },
+  durumCevir(kisaDurum) {
+    if (SABITLER.DURUMLAR.BITTI.includes(kisaDurum)) return 'FINISHED';
+    if (SABITLER.DURUMLAR.CANLI.includes(kisaDurum)) return 'IN_PLAY';
+    if (SABITLER.DURUMLAR.GELECEK.includes(kisaDurum)) return 'SCHEDULED';
+    if (SABITLER.DURUMLAR.IPTAL.includes(kisaDurum)) return 'CANCELLED';
+    return 'SCHEDULED';
+  }
 };
 
-/* ===================== YAPILANDIRMA ===================== */
-const API_ANAHTARI = '3a0b429fb0fe4def897486bc5309dafe';
-const API_TABAN = 'https://api.football-data.org/v4';
-const ISTEK_BASLIKLARI = { 'X-Auth-Token': API_ANAHTARI };
-
-const AYLAR_KISA = ['OCA','ŞUB','MAR','NİS','MAY','HAZ','TEM','AĞU','EYL','EKİ','KAS','ARA'];
-
-/* ===================== DURUM ===================== */
-const durum = {
-  takimlar: [],
-  seciliTakim: null,
-  puanGrafik: null,
-  yukleniyor: false,
-  lig: 'PL',
-  sezon: null,
-  sonrakiMac: null,
-  puanTablosuYuklendi: false,
-  puanTabloAcik: false,
-  macFiltre: 'tumu',
-  tumMaclar: [],
-  macPuanlari: {}
+/* ============================================================
+   MODÜL 3: DEPOLAMA
+   ============================================================ */
+const Depo = {
+  al(a, v = null) {
+    try { const s = localStorage.getItem(a); return s === null ? v : JSON.parse(s); }
+    catch { return v; }
+  },
+  yaz(a, d) { try { localStorage.setItem(a, JSON.stringify(d)); return true; } catch { return false; } }
 };
 
-/* ===================== YARDIMCILAR ===================== */
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
+/* ============================================================
+   MODÜL 4: BİLDİRİM
+   ============================================================ */
+const Bildirim = {
+  goster(metin, tip = 'bilgi', sure = 3500) {
+    const alan = $('#toast-alan'); if (!alan) return;
+    const ikonlar = { basari: '✅', hata: '❌', uyari: '⚠️', bilgi: 'ℹ️' };
+    const el = document.createElement('div');
+    el.className = `toast ${tip}`;
+    el.innerHTML = `<span class="toast-ikon">${ikonlar[tip] || 'ℹ️'}</span><span class="toast-metin">${Yardimci.kacis(metin)}</span>`;
+    alan.appendChild(el);
+    setTimeout(() => { el.classList.add('cikis'); setTimeout(() => el.remove(), 300); }, sure);
+  },
+  basari(m) { this.goster(m, 'basari'); },
+  hata(m) { this.goster(m, 'hata', 5000); },
+  uyari(m) { this.goster(m, 'uyari'); },
+  bilgi(m) { this.goster(m, 'bilgi'); }
+};
 
-function kacis(m) {
-  if (m === null || m === undefined) return '';
-  return String(m).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+/* ============================================================
+   MODÜL 5: MODAL
+   ============================================================ */
+const Modal = {
+  acik: false,
+  ac(baslik, icerik) {
+    const arka = $('#modal-arka'); if (!arka) return;
+    $('#modal-baslik').innerHTML = baslik;
+    $('#modal-icerik').innerHTML = icerik;
+    arka.classList.add('acik');
+    this.acik = true;
+    document.body.style.overflow = 'hidden';
+  },
+  kapat() {
+    const arka = $('#modal-arka'); if (!arka) return;
+    arka.classList.remove('acik');
+    this.acik = false;
+    document.body.style.overflow = '';
+  },
+  bagla() {
+    $('#modal-kapat')?.addEventListener('click', () => this.kapat());
+    $('#modal-arka')?.addEventListener('click', e => { if (e.target.id === 'modal-arka') this.kapat(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && this.acik) this.kapat(); });
+  }
+};
+
+/* ============================================================
+   MODÜL 6: TEMA
+   ============================================================ */
+const Tema = {
+  mevcut: 'koyu',
+  baslat() {
+    this.mevcut = Depo.al(SABITLER.DEPO_ANAHTARLARI.TEMA, 'koyu');
+    this.uygula(this.mevcut);
+    $('#tema-buton')?.addEventListener('click', () => this.degistir());
+  },
+  degistir() {
+    this.mevcut = this.mevcut === 'koyu' ? 'acik' : 'koyu';
+    this.uygula(this.mevcut);
+    Depo.yaz(SABITLER.DEPO_ANAHTARLARI.TEMA, this.mevcut);
+    Bildirim.bilgi(`Tema: ${this.mevcut === 'koyu' ? 'Koyu 🌙' : 'Açık ☀️'}`);
+  },
+  uygula(tema) {
+    document.documentElement.setAttribute('data-tema', tema);
+    const b = $('#tema-buton'); if (b) b.textContent = tema === 'koyu' ? '🌙' : '☀️';
+  }
+};
+
+/* ============================================================
+   MODÜL 7: FAVORİLER
+   ============================================================ */
+const Favoriler = {
+  liste: [],
+  baslat() {
+    this.liste = Depo.al(SABITLER.DEPO_ANAHTARLARI.FAVORILER, []);
+    this.guncelleRozet();
+    this.bagla();
+  },
+  ekle(id) { if (!this.liste.includes(id)) { this.liste.push(id); this.kaydet(); return true; } return false; },
+  cikar(id) { const i = this.liste.indexOf(id); if (i > -1) { this.liste.splice(i, 1); this.kaydet(); return true; } return false; },
+  degistir(id) {
+    if (this.liste.includes(id)) { this.cikar(id); Bildirim.bilgi('Favorilerden çıkarıldı'); }
+    else { this.ekle(id); Bildirim.basari('Favorilere eklendi'); }
+    this.guncelleRozet(); this.arayuzGuncelle();
+  },
+  icerir(id) { return this.liste.includes(id); },
+  kaydet() { Depo.yaz(SABITLER.DEPO_ANAHTARLARI.FAVORILER, this.liste); },
+  guncelleRozet() {
+    const r = $('#favori-sayi'); if (!r) return;
+    if (this.liste.length > 0) { r.textContent = this.liste.length; r.classList.remove('gizli'); }
+    else r.classList.add('gizli');
+  },
+  arayuzGuncelle() {
+    $$('.balon').forEach(b => b.classList.toggle('favori', this.icerir(parseInt(b.dataset.id, 10))));
+    $$('.puan-tablo tbody tr[data-takim-id]').forEach(tr =>
+      tr.classList.toggle('favori-satir', this.icerir(parseInt(tr.dataset.takimId, 10))));
+    if (typeof FavorilerSekme !== 'undefined') FavorilerSekme.ciz();
+  },
+  bagla() {
+    $('#favoriler-buton')?.addEventListener('click', () => Sekmeler.gecis('favoriler'));
+    $('#favorileri-temizle')?.addEventListener('click', () => {
+      if (this.liste.length === 0) return Bildirim.uyari('Zaten favori yok');
+      if (confirm('Tüm favoriler silinsin mi?')) {
+        this.liste = []; this.kaydet(); this.guncelleRozet(); this.arayuzGuncelle();
+        Bildirim.basari('Tüm favoriler silindi');
+      }
+    });
+  }
+};
+
+/* ============================================================
+   MODÜL 8: ÖNBELLEK
+   ============================================================ */
+const Onbellek = {
+  veri: new Map(),
+  al(a) {
+    const k = this.veri.get(a); if (!k) return null;
+    if (Date.now() - k.zaman > SABITLER.ONBELLEK_SURESI) { this.veri.delete(a); return null; }
+    return k.deger;
+  },
+  yaz(a, d) { this.veri.set(a, { deger: d, zaman: Date.now() }); },
+  temizle() { this.veri.clear(); }
+};
+
+/* ============================================================
+   MODÜL 9: API KATMANI (Çoklu API Desteği)
+   ============================================================ */
+
+// -------- API Sağlayıcı Arayüzü --------
+class ApiSaglayici {
+  constructor(ad, oncelik = 0) {
+    this.ad = ad;
+    this.oncelik = oncelik; // küçük sayı = yüksek öncelik
+  }
+  async takimlariGetir(sezon) { throw new Error('Uygulanmadı'); }
+  async puanDurumuGetir(sezon) { throw new Error('Uygulanmadı'); }
+  async takimMaclariGetir(takimId, sezon) { throw new Error('Uygulanmadı'); }
 }
 
-function tarihFormatla(t) {
-  if (!t) return { gun:'--', ay:'---', yil:'', tam:'—' };
-  const d = new Date(t);
-  if (isNaN(d.getTime())) return { gun:'--', ay:'---', yil:'', tam:'—' };
-  return {
-    gun: d.getDate().toString().padStart(2,'0'),
-    ay: AYLAR_KISA[d.getMonth()] || '---',
-    yil: d.getFullYear(),
-    tam: d.toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric',weekday:'long'}),
-    saat: d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0')
-  };
-}
+// -------- API-Football Adaptörü --------
+class ApiFootballSaglayici extends ApiSaglayici {
+  constructor() {
+    super('API-Football', 1);
+  }
 
-function geriSayimHesapla(hedefTarih) {
-  const simdi = Date.now();
-  const hedef = new Date(hedefTarih).getTime();
-  const fark = hedef - simdi;
-  if (fark <= 0) return { gun:0, saat:0, dakika:0, saniye:0, gecti:true };
-  return {
-    gun: Math.floor(fark / 86400000),
-    saat: Math.floor((fark % 86400000) / 3600000),
-    dakika: Math.floor((fark % 3600000) / 60000),
-    saniye: Math.floor((fark % 60000) / 1000),
-    gecti: false
-  };
-}
+  async _istek(yol) {
+    const url = `${SABITLER.API_FOOTBALL_TABAN}${yol}`;
+    const onbellek = Onbellek.al(url);
+    if (onbellek) return onbellek;
 
-/* ===================== SEZON ALGILAMA ===================== */
-async function sezonuAlgila() {
-  try {
-    const r = await fetch(`${API_TABAN}/competitions/PL`, { headers: ISTEK_BASLIKLARI });
-    if (r.ok) {
-      const veri = await r.json();
-      const cs = veri.currentSeason;
-      if (cs && cs.startDate) {
-        const basYil = new Date(cs.startDate).getFullYear();
-        durum.sezon = basYil;
-        return basYil;
+    let sonHata;
+    for (let d = 1; d <= SABITLER.MAKS_ISTEK_DENEMESI; d++) {
+      try {
+        const r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+        if (!r.ok) {
+          if (r.status === 429) { await Yardimci.bekle(3000 * d); continue; }
+          throw new Error(`HTTP ${r.status}`);
+        }
+        const veri = await r.json();
+        if (veri.errors && Object.keys(veri.errors).length > 0) {
+          throw new Error(`API: ${Object.values(veri.errors).join(', ')}`);
+        }
+        Onbellek.yaz(url, veri);
+        return veri;
+      } catch (hata) {
+        sonHata = hata;
+        if (d < SABITLER.MAKS_ISTEK_DENEMESI) await Yardimci.bekle(800 * d);
       }
     }
-  } catch (e) { console.warn('Sezon algılanamadı:', e); }
-  return 2025;
-}
+    throw sonHata;
+  }
 
-/* ===================== PUAN DURUMU ===================== */
-async function puanDurumuGetir() {
-  const icerik = $('#puan-tablo-icerik');
-  icerik.innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Puan durumu yükleniyor...</div></div>';
+  async takimlariGetir(sezon) {
+    const veri = await this._istek(`/teams?league=${SABITLER.API_FOOTBALL_LIG_ID}&season=${sezon}`);
+    return (veri.response || []).map(item => ({
+      id: item.team.id,
+      name: item.team.name,
+      shortName: item.team.code || item.team.name.split(' ')[0],
+      logo: item.team.logo,
+      code: item.team.code,
+      founded: item.team.founded,
+      venue: item.venue?.name || '',
+      kaynak: 'API-Football'
+    }));
+  }
 
-  try {
-    const url = `${API_TABAN}/competitions/${durum.lig}/standings?season=${durum.sezon}`;
-    const r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+  async puanDurumuGetir(sezon) {
+    const veri = await this._istek(`/standings?league=${SABITLER.API_FOOTBALL_LIG_ID}&season=${sezon}`);
+    const grup = veri.response?.[0]?.league?.standings?.[0] || [];
+    return grup.map(s => ({
+      position: s.rank,
+      team: {
+        id: s.team.id,
+        name: s.team.name,
+        shortName: s.team.name.split(' ')[0],
+        logo: s.team.logo
+      },
+      playedGames: s.all.played,
+      won: s.all.win,
+      draw: s.all.draw,
+      lost: s.all.lose,
+      goalsFor: s.all.goals.for,
+      goalsAgainst: s.all.goals.against,
+      goalDifference: s.goalsDiff,
+      points: s.points,
+      form: s.form || '',
+      description: s.description || ''
+    }));
+  }
 
-    if (!r.ok) {
-      if (r.status === 403) throw new Error('Bu turnuva ücretsiz planda kapsanmıyor (403).');
-      if (r.status === 429) throw new Error('İstek limiti aşıldı (429). Biraz bekleyin.');
-      throw new Error(`API hatası: ${r.status}`);
-    }
+  async takimMaclariGetir(takimId, sezon) {
+    const veri = await this._istek(`/fixtures?team=${takimId}&league=${SABITLER.API_FOOTBALL_LIG_ID}&season=${sezon}`);
+    return (veri.response || []).map(f => this._macFormatla(f));
+  }
 
-    const veri = await r.json();
-    let tablo = null;
-    if (veri.standings && veri.standings.length) {
-      tablo = veri.standings.find(s => s.type === 'TOTAL') || veri.standings[0];
-    }
-
-    if (!tablo || !tablo.table || !tablo.table.length) {
-      icerik.innerHTML = '<div class="bos-kutu">Puan durumu bulunamadı.</div>';
-      return;
-    }
-
-    puanTablosuCiz(tablo.table);
-    durum.puanTablosuYuklendi = true;
-
-  } catch (hata) {
-    console.error(hata);
-    icerik.innerHTML = `<div class="hata-kutu"><strong>❌ Puan durumu yüklenemedi</strong><div>${kacis(hata.message)}</div></div>`;
+  _macFormatla(f) {
+    const kisaDurum = f.fixture.status.short;
+    return {
+      id: f.fixture.id,
+      utcDate: f.fixture.date,
+      status: Yardimci.durumCevir(kisaDurum),
+      kisaDurum: kisaDurum,
+      matchday: parseInt((f.league.round || '').replace(/\D/g, '')) || 0,
+      competition: { name: f.league.name, code: 'PL', id: f.league.id },
+      homeTeam: {
+        id: f.teams.home.id,
+        name: f.teams.home.name,
+        shortName: f.teams.home.name.split(' ')[0],
+        logo: f.teams.home.logo
+      },
+      awayTeam: {
+        id: f.teams.away.id,
+        name: f.teams.away.name,
+        shortName: f.teams.away.name.split(' ')[0],
+        logo: f.teams.away.logo
+      },
+      score: {
+        fullTime: { home: f.goals.home, away: f.goals.away },
+        halfTime: { home: f.score.halftime.home, away: f.score.halftime.away }
+      },
+      venue: f.fixture.venue?.name || '',
+      referee: f.fixture.referee || '',
+      elapsed: f.fixture.status.elapsed
+    };
   }
 }
 
-function puanTablosuCiz(tablo) {
-  const icerik = $('#puan-tablo-icerik');
+// -------- OpenFootball Adaptörü --------
+class OpenFootballSaglayici extends ApiSaglayici {
+  constructor() {
+    super('OpenFootball', 2);
+  }
 
-  const satirlar = tablo.map(satir => {
-    const sira = satir.position;
-    const takim = satir.team;
-    const isim = kacis(takim.shortName || takim.name || '?');
-    const oynanan = satir.playedGames;
-    const galibiyet = satir.won;
-    const beraberlik = satir.draw;
-    const maglubiyet = satir.lost;
-    const attigi = satir.goalsFor;
-    const yedigi = satir.goalsAgainst;
-    const averaj = satir.goalDifference;
-    const puan = satir.points;
-    const form = satir.form || '';
+  async _sezonYolu() {
+    // OpenFootball sezon formatı: 2024-25
+    const simdi = new Date();
+    const yil = simdi.getMonth() >= 7 ? simdi.getFullYear() : simdi.getFullYear() - 1;
+    return `${yil}-${String(yil + 1).slice(-2)}`;
+  }
 
-    let siraSinif = 'sira-normal';
-    if (sira <= 4) siraSinif = 'sira-sampiyonlar';
-    else if (sira === 5) siraSinif = 'sira-avrupa';
-    else if (sira === 6) siraSinif = 'sira-konferans';
-    else if (sira >= 18) siraSinif = 'sira-dusme';
+  async _jsonAl(yol) {
+    const url = `${SABITLER.OPENFOOTBALL_TABAN}/${yol}`;
+    const onbellek = Onbellek.al(url);
+    if (onbellek) return onbellek;
 
-    let formHtml = '';
-    if (form) {
-      const harfler = form.split(',').slice(-5);
-      formHtml = '<div class="form-mini">' + harfler.map(h => {
-        h = h.trim();
-        let sinif = 'form-b', metin = 'B';
-        if (h === 'W') { sinif = 'form-g'; metin = 'G'; }
-        else if (h === 'L') { sinif = 'form-m'; metin = 'M'; }
-        return `<span class="form-nokta ${sinif}">${metin}</span>`;
-      }).join('') + '</div>';
-    } else {
-      formHtml = '<span style="color:var(--metin-gri-koyu);">—</span>';
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const veri = await r.json();
+      Onbellek.yaz(url, veri);
+      return veri;
+    } catch (hata) {
+      throw new Error(`OpenFootball: ${hata.message}`);
     }
+  }
 
-    const averajGoster = averaj > 0 ? `+${averaj}` : averaj;
+  async takimlariGetir(sezon) {
+    const sezonYolu = await this._sezonYolu();
+    const veri = await this._jsonAl(`${sezonYolu}/en.1.json`);
+    if (!veri || !veri.matches) throw new Error('OpenFootball: Maç verisi bulunamadı');
 
-    return `
-      <tr data-takim-id="${takim.id}">
-        <td><span class="sira-rozet ${siraSinif}">${sira}</span></td>
-        <td class="takim-hucresi">${isim}</td>
-        <td>${oynanan}</td>
-        <td>${galibiyet}</td>
-        <td>${beraberlik}</td>
-        <td>${maglubiyet}</td>
-        <td>${attigi}</td>
-        <td>${yedigi}</td>
-        <td>${averajGoster}</td>
-        <td class="puan-hucresi">${puan}</td>
-        <td>${formHtml}</td>
-      </tr>
-    `;
-  }).join('');
-
-  icerik.innerHTML = `
-    <table class="puan-tablo">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th class="takim-sutun">Takım</th>
-          <th>O</th>
-          <th>G</th>
-          <th>B</th>
-          <th>M</th>
-          <th>A</th>
-          <th>Y</th>
-          <th>AV</th>
-          <th>P</th>
-          <th>Form</th>
-        </tr>
-      </thead>
-      <tbody>${satirlar}</tbody>
-    </table>
-    <div class="lejant">
-      <span><span class="kutu" style="background:var(--mavi);"></span> Şampiyonlar Ligi</span>
-      <span><span class="kutu" style="background:var(--yesil);"></span> Avrupa Ligi</span>
-      <span><span class="kutu" style="background:#a78bfa;"></span> Konferans Ligi</span>
-      <span><span class="kutu" style="background:var(--kirmizi-acik);"></span> Küme Düşme</span>
-      <span style="margin-left:auto;">G=Galibiyet · B=Beraberlik · M=Mağlubiyet · AV=Averaj · P=Puan</span>
-    </div>
-  `;
-
-  icerik.querySelectorAll('tr[data-takim-id]').forEach(tr => {
-    tr.style.cursor = 'pointer';
-    tr.addEventListener('click', () => {
-      const tid = parseInt(tr.dataset.takimId);
-      const takim = durum.takimlar.find(t => t.id === tid)
-        || { id: tid, name: tr.querySelector('.takim-hucresi')?.textContent?.trim() || 'Takım' };
-      if (takim) {
-        $$('.balon').forEach(b => {
-          b.classList.remove('aktif');
-          if (parseInt(b.dataset.id) === tid) b.classList.add('aktif');
-        });
-        takimSec(tid, takim.name);
-        setTimeout(() => {
-          $('#takim-detay-alan')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-      }
+    const takimIsimleri = new Set();
+    veri.matches.forEach(m => {
+      takimIsimleri.add(m.team1);
+      takimIsimleri.add(m.team2);
     });
-  });
+
+    const takimlar = Array.from(takimIsimleri).sort((a, b) => a.localeCompare(b, 'tr'));
+    return takimlar.map((isim, index) => ({
+      id: index + 1,
+      name: isim,
+      shortName: isim.split(' ')[0],
+      logo: '',
+      code: isim.substring(0, 3).toUpperCase(),
+      founded: null,
+      venue: '',
+      kaynak: 'OpenFootball'
+    }));
+  }
+
+  async puanDurumuGetir(sezon) {
+    const sezonYolu = await this._sezonYolu();
+    const veri = await this._jsonAl(`${sezonYolu}/en.1.json`);
+    if (!veri || !veri.matches) throw new Error('OpenFootball: Maç verisi bulunamadı');
+
+    // Puan tablosunu maç sonuçlarından hesapla
+    const takimMap = new Map();
+
+    veri.matches.forEach(m => {
+      if (!m.score || !m.score.ft) return; // oynanmamış maçları atla
+      const [evGol, depGol] = m.score.ft;
+
+      // Ev sahibi
+      if (!takimMap.has(m.team1)) {
+        takimMap.set(m.team1, { takim: m.team1, o: 0, g: 0, b: 0, m: 0, a: 0, y: 0, p: 0 });
+      }
+      const ev = takimMap.get(m.team1);
+      ev.o++; ev.a += evGol; ev.y += depGol;
+      if (evGol > depGol) { ev.g++; ev.p += 3; }
+      else if (evGol < depGol) { ev.m++; }
+      else { ev.b++; ev.p += 1; }
+
+      // Deplasman
+      if (!takimMap.has(m.team2)) {
+        takimMap.set(m.team2, { takim: m.team2, o: 0, g: 0, b: 0, m: 0, a: 0, y: 0, p: 0 });
+      }
+      const dep = takimMap.get(m.team2);
+      dep.o++; dep.a += depGol; dep.y += evGol;
+      if (depGol > evGol) { dep.g++; dep.p += 3; }
+      else if (depGol < evGol) { dep.m++; }
+      else { dep.b++; dep.p += 1; }
+    });
+
+    const tablo = Array.from(takimMap.values())
+      .map(s => ({
+        ...s,
+        averaj: s.a - s.y,
+        takimKisa: s.takim.split(' ')[0]
+      }))
+      .sort((a, b) => b.p - a.p || b.averaj - a.averaj || b.a - a.a);
+
+    return tablo.map((s, i) => ({
+      position: i + 1,
+      team: {
+        id: i + 1,
+        name: s.takim,
+        shortName: s.takimKisa,
+        logo: ''
+      },
+      playedGames: s.o,
+      won: s.g,
+      draw: s.b,
+      lost: s.m,
+      goalsFor: s.a,
+      goalsAgainst: s.y,
+      goalDifference: s.averaj,
+      points: s.p,
+      form: '',
+      description: ''
+    }));
+  }
+
+  async takimMaclariGetir(takimId, sezon) {
+    const sezonYolu = await this._sezonYolu();
+    const veri = await this._jsonAl(`${sezonYolu}/en.1.json`);
+    if (!veri || !veri.matches) throw new Error('OpenFootball: Maç verisi bulunamadı');
+
+    // Takım id'si OpenFootball'da index olduğu için isim eşleştirmesi gerekli
+    const takimlar = await this.takimlariGetir(sezon);
+    const takim = takimlar.find(t => t.id === takimId);
+    if (!takim) throw new Error('OpenFootball: Takım bulunamadı');
+
+    const takimMaclari = veri.matches.filter(m =>
+      m.team1 === takim.name || m.team2 === takim.name
+    );
+
+    return takimMaclari.map((m, i) => {
+      const bitti = m.score && m.score.ft;
+      const evGol = bitti ? m.score.ft[0] : null;
+      const depGol = bitti ? m.score.ft[1] : null;
+      const tarih = m.date ? new Date(m.date).toISOString() : new Date().toISOString();
+
+      return {
+        id: i + 1,
+        utcDate: tarih,
+        status: bitti ? 'FINISHED' : 'SCHEDULED',
+        kisaDurum: bitti ? 'FT' : 'NS',
+        matchday: parseInt((m.round || '').replace(/\D/g, '')) || 0,
+        competition: { name: 'Premier League', code: 'PL', id: 39 },
+        homeTeam: {
+          id: takimlar.find(t => t.name === m.team1)?.id || 0,
+          name: m.team1,
+          shortName: m.team1.split(' ')[0],
+          logo: ''
+        },
+        awayTeam: {
+          id: takimlar.find(t => t.name === m.team2)?.id || 0,
+          name: m.team2,
+          shortName: m.team2.split(' ')[0],
+          logo: ''
+        },
+        score: {
+          fullTime: { home: evGol, away: depGol },
+          halfTime: { home: null, away: null }
+        },
+        venue: '',
+        referee: '',
+        elapsed: null
+      };
+    });
+  }
 }
 
-/* ===================== TAKIMLARI ÇEK ===================== */
-async function takimlariGetir() {
-  const alan = $('#balon-alan');
-  try {
-    if (!durum.sezon) await sezonuAlgila();
+// -------- TheSportsDB Adaptörü --------
+class TheSportsDBSaglayici extends ApiSaglayici {
+  constructor() {
+    super('TheSportsDB', 3);
+  }
 
-    const bitisYil = durum.sezon + 1;
-    $('#sezon-rozet').textContent = `📅 Sezon: ${durum.sezon}/${String(bitisYil).slice(-2)}`;
+  async _istek(yol) {
+    const url = `${SABITLER.THESPORTSDB_TABAN}${yol}`;
+    const onbellek = Onbellek.al(url);
+    if (onbellek) return onbellek;
 
-    let url = `${API_TABAN}/competitions/${durum.lig}/teams?season=${durum.sezon}`;
-    let r = await fetch(url, { headers: ISTEK_BASLIKLARI });
-
-    if (!r.ok && durum.sezon >= 2026) {
-      durum.sezon = durum.sezon - 1;
-      const by = durum.sezon + 1;
-      $('#sezon-rozet').textContent = `📅 Sezon: ${durum.sezon}/${String(by).slice(-2)}`;
-      url = `${API_TABAN}/competitions/${durum.lig}/teams?season=${durum.sezon}`;
-      r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const veri = await r.json();
+      Onbellek.yaz(url, veri);
+      return veri;
+    } catch (hata) {
+      throw new Error(`TheSportsDB: ${hata.message}`);
     }
+  }
 
-    if (!r.ok) {
-      if (r.status === 403) throw new Error('Bu turnuva ücretsiz planda kapsanmıyor (403).');
-      if (r.status === 429) throw new Error('İstek limiti aşıldı (429). Biraz bekleyin.');
-      throw new Error(`API hatası: ${r.status}`);
-    }
-
-    const veri = await r.json();
+  async takimlariGetir(sezon) {
+    // TheSportsDB'de takımları almak için search_all_teams kullanıyoruz
+    const veri = await this._istek(`/search_all_teams.php?l=English%20Premier%20League`);
     const takimlar = veri.teams || [];
+    if (!takimlar.length) throw new Error('TheSportsDB: Takımlar bulunamadı');
 
-    if (!takimlar.length) {
-      alan.innerHTML = '<div class="bos-kutu">Takım bulunamadı.</div>';
-      return;
+    return takimlar.map(t => ({
+      id: parseInt(t.idTeam) || t.idTeam,
+      name: t.strTeam,
+      shortName: t.strTeamShort || t.strTeam.split(' ')[0],
+      logo: t.strTeamBadge || '',
+      code: t.strTeamShort?.substring(0, 3).toUpperCase() || '',
+      founded: t.intFormedYear,
+      venue: t.strStadium || '',
+      kaynak: 'TheSportsDB'
+    }));
+  }
+
+  async puanDurumuGetir(sezon) {
+    // TheSportsDB sezon formatı: 2024-2025
+    const simdi = new Date();
+    const yil = simdi.getMonth() >= 7 ? simdi.getFullYear() : simdi.getFullYear() - 1;
+    const sezonStr = `${yil}-${yil + 1}`;
+
+    const veri = await this._istek(`/lookuptable.php?l=${SABITLER.THESPORTSDB_LIG_ID}&s=${sezonStr}`);
+    const tablo = veri.table || [];
+
+    if (!tablo.length) throw new Error('TheSportsDB: Puan tablosu bulunamadı');
+
+    return tablo.map(s => ({
+      position: parseInt(s.intRank),
+      team: {
+        id: parseInt(s.idTeam) || s.idTeam,
+        name: s.strTeam,
+        shortName: s.strTeamShort || s.strTeam.split(' ')[0],
+        logo: s.strTeamBadge || ''
+      },
+      playedGames: parseInt(s.intPlayed),
+      won: parseInt(s.intWin),
+      draw: parseInt(s.intDraw),
+      lost: parseInt(s.intLoss),
+      goalsFor: parseInt(s.intGoalsFor),
+      goalsAgainst: parseInt(s.intGoalsAgainst),
+      goalDifference: parseInt(s.intGoalDifference),
+      points: parseInt(s.intPoints),
+      form: s.strForm || '',
+      description: ''
+    }));
+  }
+
+  async takimMaclariGetir(takimId, sezon) {
+    // TheSportsDB takım maçları için eventslast ve eventsnext kullanır
+    const [sonVeri, gelecekVeri] = await Promise.all([
+      this._istek(`/eventslast.php?id=${takimId}`).catch(() => ({ results: [] })),
+      this._istek(`/eventsnext.php?id=${takimId}`).catch(() => ({ events: [] }))
+    ]);
+
+    const sonMaclar = sonVeri.results || [];
+    const gelecekMaclar = gelecekVeri.events || [];
+
+    const donustur = (m, bitti) => ({
+      id: parseInt(m.idEvent) || m.idEvent,
+      utcDate: m.strTimestamp || m.dateEvent + 'T' + (m.strTime || '00:00:00'),
+      status: bitti ? 'FINISHED' : 'SCHEDULED',
+      kisaDurum: bitti ? 'FT' : 'NS',
+      matchday: 0,
+      competition: { name: 'Premier League', code: 'PL', id: 39 },
+      homeTeam: {
+        id: parseInt(m.idHomeTeam) || m.idHomeTeam,
+        name: m.strHomeTeam,
+        shortName: m.strHomeTeam.split(' ')[0],
+        logo: ''
+      },
+      awayTeam: {
+        id: parseInt(m.idAwayTeam) || m.idAwayTeam,
+        name: m.strAwayTeam,
+        shortName: m.strAwayTeam.split(' ')[0],
+        logo: ''
+      },
+      score: {
+        fullTime: { home: bitti ? parseInt(m.intHomeScore) : null, away: bitti ? parseInt(m.intAwayScore) : null },
+        halfTime: { home: null, away: null }
+      },
+      venue: m.strVenue || '',
+      referee: '',
+      elapsed: null
+    });
+
+    return [
+      ...sonMaclar.map(m => donustur(m, true)),
+      ...gelecekMaclar.map(m => donustur(m, false))
+    ];
+  }
+}
+
+// -------- livescoreFootball Adaptörü --------
+class LivescoreSaglayici extends ApiSaglayici {
+  constructor() {
+    super('livescoreFootball', 4);
+  }
+
+  async _istek(yol) {
+    const url = `${SABITLER.LIVESCORE_TABAN}${yol}`;
+    const onbellek = Onbellek.al(url);
+    if (onbellek) return onbellek;
+
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const veri = await r.json();
+      Onbellek.yaz(url, veri);
+      return veri;
+    } catch (hata) {
+      throw new Error(`livescoreFootball: ${hata.message}`);
+    }
+  }
+
+  async takimlariGetir(sezon) {
+    // livescoreFootball'da takım listesi endpoint'i olduğunu varsayalım
+    // Şimdilik OpenFootball'dan fallback yapalım
+    throw new Error('livescoreFootball: Takım listesi henüz mevcut değil');
+  }
+
+  async puanDurumuGetir(sezon) {
+    try {
+      const veri = await this._istek('/football/eng.1/table');
+      const tablo = veri.table || veri.standings || [];
+      if (!tablo.length) throw new Error('Tablo bulunamadı');
+
+      return tablo.map((s, i) => ({
+        position: i + 1,
+        team: {
+          id: s.teamId || i + 1,
+          name: s.teamName || s.team,
+          shortName: (s.teamName || s.team || '').split(' ')[0],
+          logo: s.teamLogo || ''
+        },
+        playedGames: s.played || 0,
+        won: s.won || 0,
+        draw: s.drawn || 0,
+        lost: s.lost || 0,
+        goalsFor: s.goalsFor || 0,
+        goalsAgainst: s.goalsAgainst || 0,
+        goalDifference: (s.goalsFor || 0) - (s.goalsAgainst || 0),
+        points: s.points || 0,
+        form: s.form || '',
+        description: ''
+      }));
+    } catch (e) {
+      throw new Error(`livescoreFootball: ${e.message}`);
+    }
+  }
+
+  async takimMaclariGetir(takimId, sezon) {
+    // livescoreFootball'da takım maçları endpoint'i
+    try {
+      const veri = await this._istek(`/football/team/${takimId}/matches`);
+      const maclar = veri.matches || [];
+
+      return maclar.map(m => ({
+        id: m.id,
+        utcDate: m.date,
+        status: m.status === 'finished' ? 'FINISHED' : m.status === 'live' ? 'IN_PLAY' : 'SCHEDULED',
+        kisaDurum: m.status === 'finished' ? 'FT' : m.status === 'live' ? 'LIVE' : 'NS',
+        matchday: m.round || 0,
+        competition: { name: 'Premier League', code: 'PL', id: 39 },
+        homeTeam: {
+          id: m.homeTeam?.id || 0,
+          name: m.homeTeam?.name || '',
+          shortName: (m.homeTeam?.name || '').split(' ')[0],
+          logo: m.homeTeam?.logo || ''
+        },
+        awayTeam: {
+          id: m.awayTeam?.id || 0,
+          name: m.awayTeam?.name || '',
+          shortName: (m.awayTeam?.name || '').split(' ')[0],
+          logo: m.awayTeam?.logo || ''
+        },
+        score: {
+          fullTime: { home: m.homeScore, away: m.awayScore },
+          halfTime: { home: m.homeScoreHT, away: m.awayScoreHT }
+        },
+        venue: m.venue || '',
+        referee: m.referee || '',
+        elapsed: m.minute || null
+      }));
+    } catch (e) {
+      throw new Error(`livescoreFootball: ${e.message}`);
+    }
+  }
+}
+
+// -------- Çoklu API Yöneticisi (Fallback Zinciri) --------
+class ApiYonetici {
+  constructor() {
+    this.saglayicilar = [
+      new ApiFootballSaglayici(),
+      new OpenFootballSaglayici(),
+      new TheSportsDBSaglayici(),
+      new LivescoreSaglayici()
+    ].sort((a, b) => a.oncelik - b.oncelik);
+
+    this.aktifSaglayici = null;
+    this.aktifSaglayiciAd = Depo.al(SABITLER.DEPO_ANAHTARLARI.API_TERCIH, null);
+  }
+
+  async _saglayiciCagir(metod, ...args) {
+    // Eğer kullanıcı belirli bir sağlayıcı seçtiyse sadece onu dene
+    if (this.aktifSaglayiciAd) {
+      const s = this.saglayicilar.find(x => x.ad === this.aktifSaglayiciAd);
+      if (s) {
+        try {
+          const sonuc = await s[metod](...args);
+          this.aktifSaglayici = s;
+          return sonuc;
+        } catch (hata) {
+          console.warn(`${s.ad} başarısız:`, hata.message);
+          // Kullanıcı seçmiş olsa bile başarısızsa zincire devam et
+        }
+      }
     }
 
-    takimlar.sort((a,b) => (a.shortName||a.name||'').localeCompare(b.shortName||b.name||'','tr'));
-    durum.takimlar = takimlar;
+    // Fallback zinciri: sırayla dene
+    let sonHata;
+    for (const s of this.saglayicilar) {
+      try {
+        console.log(`${s.ad} deneniyor...`);
+        const sonuc = await s[metod](...args);
+        this.aktifSaglayici = s;
+        console.log(`${s.ad} başarılı!`);
+        return sonuc;
+      } catch (hata) {
+        console.warn(`${s.ad} başarısız:`, hata.message);
+        sonHata = hata;
+      }
+    }
 
-    alan.innerHTML = takimlar.map(t => {
-      const gosterim = t.shortName || t.name || '?';
-      return `<button class="balon" data-id="${t.id}" data-isim="${kacis(t.name)}" title="${kacis(t.name)}">${kacis(gosterim)}</button>`;
+    throw new Error(`Tüm API'ler başarısız oldu. Son hata: ${sonHata?.message || 'Bilinmeyen'}`);
+  }
+
+  takimlariGetir(sezon) {
+    return this._saglayiciCagir('takimlariGetir', sezon);
+  }
+
+  puanDurumuGetir(sezon) {
+    return this._saglayiciCagir('puanDurumuGetir', sezon);
+  }
+
+  takimMaclariGetir(takimId, sezon) {
+    return this._saglayiciCagir('takimMaclariGetir', takimId, sezon);
+  }
+
+  getAktifSaglayici() {
+    return this.aktifSaglayici;
+  }
+
+  saglayicilariListele() {
+    return this.saglayicilar.map(s => ({
+      ad: s.ad,
+      oncelik: s.oncelik,
+      aktif: this.aktifSaglayici?.ad === s.ad
+    }));
+  }
+
+  saglayiciSec(ad) {
+    this.aktifSaglayiciAd = ad || null;
+    Depo.yaz(SABITLER.DEPO_ANAHTARLARI.API_TERCIH, this.aktifSaglayiciAd);
+  }
+}
+
+// API Yöneticisini başlat
+const API = new ApiYonetici();
+
+/* ============================================================
+   MODÜL 10: DURUM
+   ============================================================ */
+const Durum = {
+  takimlar: [],
+  seciliTakim: null,
+  sezon: null,
+  ligPuanTablosu: null,
+  sonrakiMac: null,
+  tumMaclar: [],
+  macPuanlari: {},
+  macFiltre: 'tumu',
+  puanTabloAcik: false,
+  puanTablosuYuklendi: false,
+  puanTablosuYuklendi2: false,
+  aramaMetni: '',
+  siralaAnahtar: 'position',
+  siralaTers: false,
+  aktifSekme: 'takimlar',
+  grafikler: { puan: null, gol: null, ligPuan: null, karsilastirma: null }
+};
+
+/* ============================================================
+   MODÜL 11: SEKMELER
+   ============================================================ */
+const Sekmeler = {
+  baslat() {
+    const kayitli = Depo.al(SABITLER.DEPO_ANAHTARLARI.SEKME, 'takimlar');
+    this.gecis(kayitli, false);
+    $$('.sekme').forEach(s => s.addEventListener('click', () => this.gecis(s.dataset.sekme)));
+  },
+  gecis(ad, kaydet = true) {
+    Durum.aktifSekme = ad;
+    $$('.sekme').forEach(s => {
+      const aktif = s.dataset.sekme === ad;
+      s.classList.toggle('aktif', aktif);
+      s.setAttribute('aria-selected', aktif ? 'true' : 'false');
+    });
+    $$('.sekme-icerik').forEach(i => i.style.display = i.id === `sekme-${ad}` ? 'block' : 'none');
+    if (kaydet) Depo.yaz(SABITLER.DEPO_ANAHTARLARI.SEKME, ad);
+    if (ad === 'puan' && !Durum.puanTablosuYuklendi2) PuanTablosu.yukle2();
+    if (ad === 'istatistik') Istatistikler.ciz();
+    if (ad === 'karsilastir') Karsilastirma.baslat();
+    if (ad === 'favoriler') FavorilerSekme.ciz();
+  }
+};
+
+/* ============================================================
+   MODÜL 12: PUAN TABLOSU
+   ============================================================ */
+const PuanTablosu = {
+  async yukle() {
+    const icerik = $('#puan-tablo-icerik'); if (!icerik) return;
+    icerik.innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Puan durumu yükleniyor...</div></div>';
+    try {
+      if (!Durum.sezon) Durum.sezon = API.sezonHesapla();
+      const tablo = await API.puanDurumuGetir(Durum.sezon);
+      if (!tablo.length) { icerik.innerHTML = '<div class="bos-kutu">Puan durumu bulunamadı.</div>'; return; }
+      Durum.ligPuanTablosu = tablo;
+      this.ciz(tablo, 'puan-tablo-icerik');
+      Durum.puanTablosuYuklendi = true;
+      ApiDurum.guncelle();
+    } catch (hata) {
+      console.error(hata);
+      icerik.innerHTML = `<div class="hata-kutu"><strong>❌ Puan durumu yüklenemedi</strong><div>${Yardimci.kacis(hata.message)}</div><button class="btn" onclick="PuanTablosu.yukle()">🔄 Tekrar Dene</button></div>`;
+    }
+  },
+
+  async yukle2() {
+    const icerik = $('#puan-tablo-icerik-2'); if (!icerik) return;
+    if (Durum.ligPuanTablosu) { this.ciz(Durum.ligPuanTablosu, 'puan-tablo-icerik-2'); Durum.puanTablosuYuklendi2 = true; return; }
+    icerik.innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Yükleniyor...</div></div>';
+    try {
+      if (!Durum.sezon) Durum.sezon = API.sezonHesapla();
+      const tablo = await API.puanDurumuGetir(Durum.sezon);
+      Durum.ligPuanTablosu = tablo;
+      this.ciz(tablo, 'puan-tablo-icerik-2');
+      Durum.puanTablosuYuklendi2 = true;
+      ApiDurum.guncelle();
+    } catch (hata) {
+      icerik.innerHTML = `<div class="hata-kutu"><strong>❌ Yüklenemedi</strong><div>${Yardimci.kacis(hata.message)}</div></div>`;
+    }
+  },
+
+  ciz(tablo, hedefId = 'puan-tablo-icerik') {
+    const icerik = document.getElementById(hedefId); if (!icerik) return;
+
+    let veri = [...tablo];
+    if (Durum.siralaAnahtar !== 'position') {
+      const a = Durum.siralaAnahtar;
+      veri = Yardimci.sirala(veri, s => {
+        if (a === 'team') return s.team.shortName || s.team.name;
+        if (a === 'goalDifference') return s.goalDifference;
+        return s[a] ?? 0;
+      }, Durum.siralaTers);
+    }
+
+    const satirlar = veri.map(satir => {
+      const takim = satir.team;
+      const isim = Yardimci.kacis(takim.shortName || takim.name);
+      const favoriMi = Favoriler.icerir(takim.id);
+
+      let siraSinif = 'sira-normal';
+      if (satir.position <= 4) siraSinif = 'sira-sampiyonlar';
+      else if (satir.position === 5) siraSinif = 'sira-avrupa';
+      else if (satir.position === 6) siraSinif = 'sira-konferans';
+      else if (satir.position >= 18) siraSinif = 'sira-dusme';
+
+      let formHtml = '<span style="color:var(--metin-gri-koyu);">—</span>';
+      if (satir.form) {
+        const harfler = satir.form.split('').slice(-5);
+        formHtml = '<div class="form-mini">' + harfler.map(h => {
+          let sinif = 'form-b', metin = 'B';
+          if (h === 'W') { sinif = 'form-g'; metin = 'G'; }
+          else if (h === 'L') { sinif = 'form-m'; metin = 'M'; }
+          return `<span class="form-nokta ${sinif}" title="${metin}">${metin}</span>`;
+        }).join('') + '</div>';
+      }
+
+      const averajGoster = satir.goalDifference > 0 ? `+${satir.goalDifference}` : satir.goalDifference;
+
+      return `
+        <tr data-takim-id="${takim.id}" class="${favoriMi ? 'favori-satir' : ''}">
+          <td><span class="sira-rozet ${siraSinif}">${satir.position}</span></td>
+          <td class="takim-hucresi">
+            <button class="favori-yildiz ${favoriMi ? 'aktif' : ''}" data-fav-id="${takim.id}">${favoriMi ? '★' : '☆'}</button>
+            ${isim}
+          </td>
+          <td>${satir.playedGames}</td>
+          <td>${satir.won}</td>
+          <td>${satir.draw}</td>
+          <td>${satir.lost}</td>
+          <td>${satir.goalsFor}</td>
+          <td>${satir.goalsAgainst}</td>
+          <td>${averajGoster}</td>
+          <td class="puan-hucresi">${satir.points}</td>
+          <td>${formHtml}</td>
+        </tr>
+      `;
+    }).join('');
+
+    icerik.innerHTML = `
+      <table class="puan-tablo">
+        <thead>
+          <tr>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'position' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="position">#</th>
+            <th class="takim-sutun siralanabilir ${Durum.siralaAnahtar === 'team' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="team">Takım</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'playedGames' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="playedGames">O</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'won' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="won">G</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'draw' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="draw">B</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'lost' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="lost">M</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'goalsFor' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="goalsFor">A</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'goalsAgainst' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="goalsAgainst">Y</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'goalDifference' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="goalDifference">AV</th>
+            <th class="siralanabilir ${Durum.siralaAnahtar === 'points' ? 'siralama-aktif' : ''} ${Durum.siralaTers ? 'ters' : ''}" data-sirala="points">P</th>
+            <th>Form</th>
+          </tr>
+        </thead>
+        <tbody>${satirlar}</tbody>
+      </table>
+      <div class="lejant">
+        <span><span class="kutu" style="background:var(--mavi);"></span> Şampiyonlar Ligi</span>
+        <span><span class="kutu" style="background:var(--yesil);"></span> Avrupa Ligi</span>
+        <span><span class="kutu" style="background:var(--mor);"></span> Konferans Ligi</span>
+        <span><span class="kutu" style="background:var(--kirmizi-acik);"></span> Küme Düşme</span>
+        <span style="margin-left:auto;">G=Galibiyet · B=Beraberlik · M=Mağlubiyet · AV=Averaj · P=Puan</span>
+      </div>
+    `;
+
+    this.olaylariBagla(icerik);
+  },
+
+  olaylariBagla(icerik) {
+    icerik.querySelectorAll('th.siralanabilir').forEach(th => {
+      th.addEventListener('click', () => {
+        const a = th.dataset.sirala;
+        if (Durum.siralaAnahtar === a) Durum.siralaTers = !Durum.siralaTers;
+        else { Durum.siralaAnahtar = a; Durum.siralaTers = false; }
+        this.ciz(Durum.ligPuanTablosu, icerik.id);
+      });
+    });
+    icerik.querySelectorAll('tr[data-takim-id]').forEach(tr => {
+      tr.addEventListener('click', e => {
+        if (e.target.closest('.favori-yildiz')) return;
+        const tid = parseInt(tr.dataset.takimId, 10);
+        const takim = Durum.takimlar.find(t => t.id === tid) || { id: tid, name: 'Takım' };
+        $$('.balon').forEach(b => b.classList.toggle('aktif', parseInt(b.dataset.id, 10) === tid));
+        TakimDetay.sec(tid, takim.name);
+        Sekmeler.gecis('takimlar');
+        setTimeout(() => $('#takim-detay-alan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+      });
+    });
+    icerik.querySelectorAll('.favori-yildiz').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        Favoriler.degistir(parseInt(btn.dataset.favId, 10));
+      });
+    });
+  },
+
+  butonBagla() {
+    const buton = $('#puan-durum-buton');
+    const alan = $('#puan-tablo-alan');
+    if (!buton || !alan) return;
+    buton.addEventListener('click', async () => {
+      Durum.puanTabloAcik = !Durum.puanTabloAcik;
+      if (Durum.puanTabloAcik) {
+        alan.classList.add('acik');
+        buton.classList.add('aktif');
+        buton.textContent = '✖ Puan Durumunu Kapat';
+        if (!Durum.puanTablosuYuklendi) {
+          if (!Durum.sezon) Durum.sezon = API.sezonHesapla();
+          await this.yukle();
+        }
+      } else {
+        alan.classList.remove('acik');
+        buton.classList.remove('aktif');
+        buton.textContent = '📊 Lig Puan Durumu';
+      }
+    });
+    $('#puan-yenile')?.addEventListener('click', async () => {
+      Onbellek.temizle();
+      Durum.puanTablosuYuklendi2 = false;
+      await this.yukle2();
+      Bildirim.basari('Puan tablosu yenilendi');
+    });
+  }
+};
+
+/* ============================================================
+   MODÜL 13: TAKIMLAR
+   ============================================================ */
+const Takimlar = {
+  async yukle() {
+    const alan = $('#balon-alan'); if (!alan) return;
+    alan.innerHTML = Array(20).fill(0).map(() => '<div class="skeleton skeleton-satir"></div>').join('');
+
+    try {
+      if (!Durum.sezon) {
+        Durum.sezon = API.sezonHesapla();
+        Depo.yaz(SABITLER.DEPO_ANAHTARLARI.SEZON, Durum.sezon);
+      }
+
+      const bitisYil = Durum.sezon + 1;
+      const rozet = $('#sezon-rozet');
+      if (rozet) rozet.textContent = `📅 Sezon: ${Durum.sezon}/${String(bitisYil).slice(-2)}`;
+
+      const takimlar = await API.takimlariGetir(Durum.sezon);
+
+      if (!takimlar.length) {
+        alan.innerHTML = '<div class="bos-kutu">Takım bulunamadı.</div>';
+        return;
+      }
+
+      takimlar.sort((a, b) => (a.shortName || a.name).localeCompare(b.shortName || b.name, 'tr'));
+      Durum.takimlar = takimlar;
+
+      const sayisi = $('#takim-sayisi');
+      if (sayisi) sayisi.textContent = `${takimlar.length} takım`;
+
+      this.ciz();
+      ApiDurum.guncelle();
+    } catch (hata) {
+      console.error(hata);
+      alan.innerHTML = `
+        <div class="hata-kutu">
+          <strong>❌ Takımlar yüklenemedi</strong>
+          <div>${Yardimci.kacis(hata.message)}</div>
+          <small>Tüm API'ler denendi ancak başarısız oldu.</small>
+          <button class="btn" onclick="Takimlar.yukle()">🔄 Tekrar Dene</button>
+        </div>
+      `;
+    }
+  },
+
+  ciz() {
+    const alan = $('#balon-alan'); if (!alan) return;
+    alan.innerHTML = Durum.takimlar.map(t => {
+      const gosterim = t.shortName || t.name;
+      const fav = Favoriler.icerir(t.id);
+      return `<button class="balon ${fav ? 'favori' : ''}" data-id="${t.id}" data-isim="${Yardimci.kacis(t.name)}" title="${Yardimci.kacis(t.name)}">
+        <span class="balon-yildiz">★</span>${Yardimci.kacis(gosterim)}
+      </button>`;
     }).join('');
 
     alan.querySelectorAll('.balon').forEach(btn => {
       btn.addEventListener('click', () => {
         alan.querySelectorAll('.balon').forEach(b => b.classList.remove('aktif'));
         btn.classList.add('aktif');
-        takimSec(parseInt(btn.dataset.id), btn.dataset.isim);
+        TakimDetay.sec(parseInt(btn.dataset.id, 10), btn.dataset.isim);
       });
     });
+    this.aramaUygula();
+  },
 
-  } catch (hata) {
-    console.error(hata);
-    alan.innerHTML = `<div class="hata-kutu"><strong>❌ Takımlar yüklenemedi</strong><div>${kacis(hata.message)}</div><small>İnternet bağlantınızı kontrol edin.</small></div>`;
+  aramaUygula() {
+    const m = Durum.aramaMetni.toLowerCase().trim();
+    $$('.balon').forEach(b => {
+      if (!m) { b.classList.remove('gizli-balon'); return; }
+      const isim = (b.dataset.isim || b.textContent || '').toLowerCase();
+      b.classList.toggle('gizli-balon', !isim.includes(m));
+    });
+  },
+
+  aramaBagla() {
+    const input = $('#arama-input');
+    const temizle = $('#arama-temizle');
+    if (!input) return;
+    const uygula = Yardimci.debounce(() => {
+      Durum.aramaMetni = input.value;
+      temizle?.classList.toggle('goster', input.value.length > 0);
+      this.aramaUygula();
+    }, 200);
+    input.addEventListener('input', uygula);
+    temizle?.addEventListener('click', () => {
+      input.value = ''; Durum.aramaMetni = '';
+      temizle.classList.remove('goster');
+      this.aramaUygula(); input.focus();
+    });
   }
-}
+};
 
-/* ===================== TAKIM SEÇ ===================== */
-async function takimSec(takimId, takimIsim) {
-  durum.seciliTakim = { id: takimId, isim: takimIsim };
-  durum.sonrakiMac = null;
-  durum.macFiltre = 'tumu';
-  const detayAlan = $('#takim-detay-alan');
-  detayAlan.style.display = 'block';
+/* ============================================================
+   MODÜL 14: TAKIM DETAY
+   ============================================================ */
+const TakimDetay = {
+  async sec(takimId, takimIsim) {
+    Durum.seciliTakim = { id: takimId, isim: takimIsim };
+    Durum.sonrakiMac = null;
+    Durum.macFiltre = 'tumu';
+    Depo.yaz(SABITLER.DEPO_ANAHTARLARI.SON_TAKIM, { id: takimId, isim: takimIsim });
 
-  // Filtre butonlarını sıfırla
-  $$('.mac-filtre-btn').forEach(b => {
-    b.classList.toggle('aktif', b.dataset.mfiltre === 'tumu');
-  });
+    const detayAlan = $('#takim-detay-alan'); if (!detayAlan) return;
+    detayAlan.style.display = 'block';
 
-  $('#takim-baslik').innerHTML = `
-    <div class="takim-logo">${kacis((takimIsim||'?').substring(0,2).toUpperCase())}</div>
-    <div>
-      <div class="takim-isim">${kacis(takimIsim)}</div>
-      <div class="takim-stats-mini" id="mini-stats"><span>Yükleniyor...</span></div>
-    </div>
-  `;
+    $$('.mac-filtre-btn').forEach(b => b.classList.toggle('aktif', b.dataset.mfiltre === 'tumu'));
+    this.baslikCiz(takimIsim);
+    $('#sonraki-alan').style.display = 'none';
+    $('#mac-listesi').innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Maçlar yükleniyor...</div></div>';
+    $('#takim-stat-grid').innerHTML = '';
 
-  $('#sonraki-alan').style.display = 'none';
-  $('#mac-listesi').innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Maçlar yükleniyor...</div></div>';
+    try {
+      if (!Durum.sezon) Durum.sezon = API.sezonHesapla();
+      const maclar = await API.takimMaclariGetir(takimId, Durum.sezon);
 
-  try {
-    const url = `${API_TABAN}/teams/${takimId}/matches?season=${durum.sezon}&status=FINISHED,SCHEDULED,TIMED,IN_PLAY,PAUSED`;
-    const r = await fetch(url, { headers: ISTEK_BASLIKLARI });
+      if (!maclar.length) {
+        $('#mac-listesi').innerHTML = '<div class="bos-kutu">Bu takım için Premier Lig maçı bulunamadı.</div>';
+        return;
+      }
 
-    if (!r.ok) throw new Error(`Maç verisi alınamadı (${r.status})`);
+      maclar.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
 
-    const veri = await r.json();
-    const maclar = (veri.matches || []).filter(m => m.competition && m.competition.code === 'PL');
+      const bitenler = maclar.filter(m => m.status === 'FINISHED');
+      const gelecekler = maclar.filter(m =>
+        m.status !== 'FINISHED' && m.status !== 'CANCELLED' &&
+        new Date(m.utcDate).getTime() > Date.now()
+      );
 
-    if (!maclar.length) {
-      $('#mac-listesi').innerHTML = '<div class="bos-kutu">Bu takım için Premier Lig maçı bulunamadı.</div>';
-      $('#mini-stats').innerHTML = '<span>Veri yok</span>';
-      return;
+      let sonrakiMac = null;
+      if (gelecekler.length) {
+        sonrakiMac = gelecekler.reduce((en, m) =>
+          new Date(m.utcDate) < new Date(en.utcDate) ? m : en, gelecekler[0]);
+      }
+      const canliMac = maclar.find(m => m.status === 'IN_PLAY');
+      if (canliMac) sonrakiMac = canliMac;
+      Durum.sonrakiMac = sonrakiMac;
+
+      const ist = this.istatistikHesapla(bitenler, takimId, maclar);
+      this.statGridCiz(ist);
+      this.evDepCiz(ist);
+      this.miniStatsCiz(ist);
+
+      if (sonrakiMac) { this.sonrakiKartCiz(sonrakiMac, takimId); GeriSayim.baslat(); }
+
+      if (bitenler.length > 0) {
+        Grafikler.puanCiz(ist.grafikEtiketler, ist.grafikPuanlar, takimIsim);
+        Grafikler.golCiz(ist.golGecmisi, takimIsim);
+        const gb = $('#grafik-bilgi');
+        if (gb) gb.textContent = `${bitenler.length} maçlık gelişim`;
+      }
+
+      const st = $('#sayac-tumu'); if (st) st.textContent = maclar.length;
+      const sg = $('#sayac-gelecek'); if (sg) sg.textContent = gelecekler.length;
+      const sgm = $('#sayac-gecmis'); if (sgm) sgm.textContent = bitenler.length;
+
+      Durum.tumMaclar = maclar;
+      Durum.macPuanlari = ist.macPuanlari;
+      MacListesi.ciz();
+      ApiDurum.guncelle();
+    } catch (hata) {
+      console.error(hata);
+      $('#mac-listesi').innerHTML = `<div class="hata-kutu"><strong>❌ Maçlar yüklenemedi</strong><div>${Yardimci.kacis(hata.message)}</div></div>`;
     }
+  },
 
-    maclar.sort((a,b) => new Date(a.utcDate) - new Date(b.utcDate));
-
-    const bitenler = maclar.filter(m => m.status === 'FINISHED');
-    const gelecekler = maclar.filter(m =>
-      m.status !== 'FINISHED' &&
-      m.status !== 'CANCELLED' &&
-      m.status !== 'POSTPONED' &&
-      new Date(m.utcDate).getTime() > Date.now()
-    );
-
-    let sonrakiMac = null;
-    if (gelecekler.length) {
-      sonrakiMac = gelecekler.reduce((en, m) =>
-        new Date(m.utcDate) < new Date(en.utcDate) ? m : en
-      , gelecekler[0]);
-    }
-    const canliMac = maclar.find(m => m.status === 'IN_PLAY' || m.status === 'PAUSED');
-    if (canliMac) sonrakiMac = canliMac;
-
-    durum.sonrakiMac = sonrakiMac;
-
+  istatistikHesapla(bitenler, takimId, tumMaclar) {
     let kumulatif = 0;
-    const grafikEtiketler = [];
-    const grafikPuanlar = [];
-    const macPuanlari = {};
+    const grafikEtiketler = [], grafikPuanlar = [], macPuanlari = {}, golGecmisi = [];
+    let galibiyet = 0, beraberlik = 0, maglubiyet = 0;
+    let atilan = 0, yenilen = 0;
+    let evG = 0, evB = 0, evM = 0, evA = 0, evY = 0;
+    let depG = 0, depB = 0, depM = 0, depA = 0, depY = 0;
+    let enUzunG = 0, enUzunY = 0, suankiG = 0, suankiY = 0;
 
     bitenler.forEach((m, i) => {
-      const ev = m.score.fullTime.home;
-      const dep = m.score.fullTime.away;
-      const evId = m.homeTeam.id;
-      const depId = m.awayTeam.id;
+      const ev = m.score.fullTime.home ?? 0;
+      const dep = m.score.fullTime.away ?? 0;
+      const evdeMi = m.homeTeam.id === takimId;
+      const kendi = evdeMi ? ev : dep;
+      const rakip = evdeMi ? dep : ev;
+
+      atilan += kendi; yenilen += rakip;
 
       let puan = 0, sonuc = 'berabere';
-      if (ev > dep) { puan = (evId === takimId) ? 3 : 0; sonuc = (evId === takimId) ? 'galibiyet' : 'maglubiyet'; }
-      else if (dep > ev) { puan = (depId === takimId) ? 3 : 0; sonuc = (depId === takimId) ? 'galibiyet' : 'maglubiyet'; }
-      else { puan = 1; }
+      if (kendi > rakip) {
+        puan = 3; sonuc = 'galibiyet'; galibiyet++;
+        if (evdeMi) evG++; else depG++;
+        suankiG++; suankiY++;
+      } else if (kendi < rakip) {
+        puan = 0; sonuc = 'maglubiyet'; maglubiyet++;
+        if (evdeMi) evM++; else depM++;
+        suankiG = 0; suankiY = 0;
+      } else {
+        puan = 1; sonuc = 'berabere'; beraberlik++;
+        if (evdeMi) evB++; else depB++;
+        suankiG = 0; suankiY++;
+      }
+      enUzunG = Math.max(enUzunG, suankiG);
+      enUzunY = Math.max(enUzunY, suankiY);
+
+      if (evdeMi) { evA += kendi; evY += rakip; }
+      else { depA += kendi; depY += rakip; }
 
       kumulatif += puan;
       macPuanlari[m.id] = { puan, sonuc };
@@ -1189,384 +2310,856 @@ async function takimSec(takimId, takimIsim) {
       const hafta = m.matchday || (i + 1);
       grafikEtiketler.push(`H${hafta}`);
       grafikPuanlar.push(kumulatif);
+      golGecmisi.push({ hafta: `H${hafta}`, atilan: kendi, yenilen: rakip });
     });
 
-    const toplamPuan = kumulatif;
-    const oynanan = bitenler.length;
-    const galibiyet = bitenler.filter(m => macPuanlari[m.id]?.sonuc === 'galibiyet').length;
-    const beraberlik = bitenler.filter(m => macPuanlari[m.id]?.sonuc === 'berabere').length;
-    const maglubiyet = bitenler.filter(m => macPuanlari[m.id]?.sonuc === 'maglubiyet').length;
+    return {
+      toplamPuan: kumulatif, oynanan: bitenler.length,
+      galibiyet, beraberlik, maglubiyet, atilan, yenilen, averaj: atilan - yenilen,
+      evGalibiyet: evG, evBeraberlik: evB, evMaglubiyet: evM, evAtilan: evA, evYenilen: evY,
+      depGalibiyet: depG, depBeraberlik: depB, depMaglubiyet: depM, depAtilan: depA, depYenilen: depY,
+      enUzunGalibiyetSeri: enUzunG, enUzunYenilmezSeri: enUzunY,
+      grafikEtiketler, grafikPuanlar, macPuanlari, golGecmisi
+    };
+  },
 
-    $('#mini-stats').innerHTML = `
-      <span>📊 <strong>${toplamPuan}</strong> Puan</span>
-      <span>✅ <strong>${galibiyet}</strong>G</span>
-      <span>➖ <strong>${beraberlik}</strong>B</span>
-      <span>❌ <strong>${maglubiyet}</strong>M</span>
-      <span>🎮 <strong>${oynanan}</strong> Maç</span>
+  baslikCiz(takimIsim) {
+    const fav = Durum.seciliTakim ? Favoriler.icerir(Durum.seciliTakim.id) : false;
+    $('#takim-baslik').innerHTML = `
+      <div class="takim-logo">${Yardimci.kacis((takimIsim || '?').substring(0, 2).toUpperCase())}</div>
+      <div>
+        <div class="takim-isim">${Yardimci.kacis(takimIsim)}</div>
+        <div class="takim-stats-mini" id="mini-stats"><span>Yükleniyor...</span></div>
+      </div>
+      <div class="takim-aksiyonlar">
+        <button class="btn btn-kucuk ${fav ? 'aktif' : ''}" id="takim-fav-btn">${fav ? '★ Favori' : '☆ Favori'}</button>
+      </div>
     `;
+    $('#takim-fav-btn')?.addEventListener('click', () => {
+      Favoriler.degistir(Durum.seciliTakim.id);
+      this.baslikCiz(takimIsim);
+    });
+  },
 
-    if (sonrakiMac) {
-      sonrakiKartCiz(sonrakiMac, takimId);
-      geriSayimBaslat();
-    } else {
-      $('#sonraki-alan').style.display = 'none';
+  miniStatsCiz(ist) {
+    const el = $('#mini-stats'); if (!el) return;
+    el.innerHTML = `
+      <span>📊 <strong>${ist.toplamPuan}</strong> Puan</span>
+      <span>✅ <strong>${ist.galibiyet}</strong>G</span>
+      <span>➖ <strong>${ist.beraberlik}</strong>B</span>
+      <span>❌ <strong>${ist.maglubiyet}</strong>M</span>
+      <span>🎮 <strong>${ist.oynanan}</strong> Maç</span>
+    `;
+  },
+
+  statGridCiz(ist) {
+    const el = $('#takim-stat-grid'); if (!el) return;
+    const ppg = Yardimci.ortalama(ist.toplamPuan, ist.oynanan);
+    const golOrt = Yardimci.ortalama(ist.atilan, ist.oynanan);
+    const yenenOrt = Yardimci.ortalama(ist.yenilen, ist.oynanan);
+    const kazanma = Yardimci.yuzde(ist.galibiyet, ist.oynanan);
+
+    el.innerHTML = `
+      <div class="stat-kart vurgu-sari">
+        <div class="stat-etiket">📊 Toplam Puan</div>
+        <div class="stat-deger">${ist.toplamPuan}</div>
+        <div class="stat-alt">${ist.oynanan} maçta</div>
+      </div>
+      <div class="stat-kart vurgu-mavi">
+        <div class="stat-etiket">🎯 Maç Başı Puan</div>
+        <div class="stat-deger">${ppg}</div>
+        <div class="stat-alt">PPG ortalaması</div>
+      </div>
+      <div class="stat-kart vurgu-yesil">
+        <div class="stat-etiket">⚽ Atılan Gol</div>
+        <div class="stat-deger">${ist.atilan}</div>
+        <div class="stat-alt">Ort. ${golOrt}/maç</div>
+      </div>
+      <div class="stat-kart vurgu-kirmizi">
+        <div class="stat-etiket">🥅 Yenilen Gol</div>
+        <div class="stat-deger">${ist.yenilen}</div>
+        <div class="stat-alt">Ort. ${yenenOrt}/maç</div>
+      </div>
+      <div class="stat-kart">
+        <div class="stat-etiket">⚖️ Averaj</div>
+        <div class="stat-deger ${ist.averaj > 0 ? 'vurgu-yesil' : ist.averaj < 0 ? 'vurgu-kirmizi' : ''}">${ist.averaj > 0 ? '+' : ''}${ist.averaj}</div>
+      </div>
+      <div class="stat-kart vurgu-mor">
+        <div class="stat-etiket">🏆 Kazanma Oranı</div>
+        <div class="stat-deger">${kazanma}%</div>
+        <div class="stat-alt">${ist.galibiyet} galibiyet</div>
+      </div>
+      <div class="stat-kart">
+        <div class="stat-etiket">🔥 En Uzun Galibiyet Serisi</div>
+        <div class="stat-deger">${ist.enUzunGalibiyetSeri}</div>
+        <div class="stat-alt">maç</div>
+      </div>
+      <div class="stat-kart">
+        <div class="stat-etiket">🛡️ En Uzun Yenilmezlik</div>
+        <div class="stat-deger">${ist.enUzunYenilmezSeri}</div>
+        <div class="stat-alt">maç</div>
+      </div>
+    `;
+  },
+
+  evDepCiz(ist) {
+    const evEl = $('#ev-satirlar'), depEl = $('#dep-satirlar');
+    if (!evEl || !depEl) return;
+    const evToplam = ist.evGalibiyet + ist.evBeraberlik + ist.evMaglubiyet;
+    const depToplam = ist.depGalibiyet + ist.depBeraberlik + ist.depMaglubiyet;
+    const evPuan = ist.evGalibiyet * 3 + ist.evBeraberlik;
+    const depPuan = ist.depGalibiyet * 3 + ist.depBeraberlik;
+
+    evEl.innerHTML = `
+      <div class="evdep-satir"><span>Maç</span><strong>${evToplam}</strong></div>
+      <div class="evdep-satir"><span>Galibiyet</span><strong>${ist.evGalibiyet}</strong></div>
+      <div class="evdep-satir"><span>Beraberlik</span><strong>${ist.evBeraberlik}</strong></div>
+      <div class="evdep-satir"><span>Mağlubiyet</span><strong>${ist.evMaglubiyet}</strong></div>
+      <div class="evdep-satir"><span>Atılan/Yenilen</span><strong>${ist.evAtilan}/${ist.evYenilen}</strong></div>
+      <div class="evdep-satir"><span>Puan</span><strong>${evPuan}</strong></div>
+    `;
+    depEl.innerHTML = `
+      <div class="evdep-satir"><span>Maç</span><strong>${depToplam}</strong></div>
+      <div class="evdep-satir"><span>Galibiyet</span><strong>${ist.depGalibiyet}</strong></div>
+      <div class="evdep-satir"><span>Beraberlik</span><strong>${ist.depBeraberlik}</strong></div>
+      <div class="evdep-satir"><span>Mağlubiyet</span><strong>${ist.depMaglubiyet}</strong></div>
+      <div class="evdep-satir"><span>Atılan/Yenilen</span><strong>${ist.depAtilan}/${ist.depYenilen}</strong></div>
+      <div class="evdep-satir"><span>Puan</span><strong>${depPuan}</strong></div>
+    `;
+  },
+
+  sonrakiKartCiz(mac, takimId) {
+    const t = Yardimci.tarihFormatla(mac.utcDate);
+    const ev = Yardimci.kacis(mac.homeTeam?.shortName || mac.homeTeam?.name || '?');
+    const dep = Yardimci.kacis(mac.awayTeam?.shortName || mac.awayTeam?.name || '?');
+    const evdeMi = mac.homeTeam?.id === takimId;
+    const evdepEtiket = evdeMi ? '🏠 EV' : '✈️ DEPLASMAN';
+    const canliMi = mac.status === 'IN_PLAY';
+    const gs = Yardimci.geriSayimHesapla(mac.utcDate);
+
+    let geriSayimHtml = '';
+    if (canliMi) {
+      geriSayimHtml = `<div class="geri-sayim"><div class="gs-birim" style="border-color:var(--kirmizi);min-width:auto;"><span class="gs-sayi" style="color:var(--kirmizi-acik);">🔴 CANLI</span><span class="gs-etiket">${mac.elapsed ? mac.elapsed + "'" : 'Oynanıyor'}</span></div></div>`;
+    } else if (!gs.gecti) {
+      geriSayimHtml = `
+        <div class="geri-sayim" data-tarih="${mac.utcDate}">
+          <div class="gs-birim"><span class="gs-sayi" data-gs="gun">${gs.gun}</span><span class="gs-etiket">Gün</span></div>
+          <div class="gs-birim"><span class="gs-sayi" data-gs="saat">${gs.saat}</span><span class="gs-etiket">Saat</span></div>
+          <div class="gs-birim"><span class="gs-sayi" data-gs="dakika">${gs.dakika}</span><span class="gs-etiket">Dakika</span></div>
+          <div class="gs-birim"><span class="gs-sayi" data-gs="saniye">${gs.saniye}</span><span class="gs-etiket">Saniye</span></div>
+        </div>
+      `;
     }
 
-    if (bitenler.length > 0) {
-      grafikCiz(grafikEtiketler, grafikPuanlar);
-      $('#grafik-bilgi').textContent = `${bitenler.length} maçlık gelişim`;
-    } else {
-      if (durum.puanGrafik) { durum.puanGrafik.destroy(); durum.puanGrafik = null; }
-      $('#grafik-bilgi').textContent = 'Henüz oynanmış maç yok';
-    }
-
-    // Sayıları güncelle
-    const sayacTumu = $('#sayac-tumu');
-    const sayacGelecek = $('#sayac-gelecek');
-    const sayacGecmis = $('#sayac-gecmis');
-    if (sayacTumu) sayacTumu.textContent = maclar.length;
-    if (sayacGelecek) sayacGelecek.textContent = gelecekler.length;
-    if (sayacGecmis) sayacGecmis.textContent = bitenler.length;
-
-    // Sakla ve çiz
-    durum.tumMaclar = maclar;
-    durum.macPuanlari = macPuanlari;
-    macListesiCiz();
-
-  } catch (hata) {
-    console.error(hata);
-    $('#mac-listesi').innerHTML = `<div class="hata-kutu"><strong>❌ Maçlar yüklenemedi</strong><div>${kacis(hata.message)}</div></div>`;
-    $('#mini-stats').innerHTML = '<span>Hata</span>';
-    $('#sonraki-alan').style.display = 'none';
-  }
-}
-
-/* ===================== SIRADAKİ MAÇ KARTI ===================== */
-function sonrakiKartCiz(mac, takimId) {
-  const t = tarihFormatla(mac.utcDate);
-  const ev = kacis(mac.homeTeam?.shortName || mac.homeTeam?.name || '?');
-  const dep = kacis(mac.awayTeam?.shortName || mac.awayTeam?.name || '?');
-  const turnuva = kacis(mac.competition?.name || '');
-  const evdeMi = mac.homeTeam?.id === takimId;
-  const evdepEtiket = evdeMi ? '🏠 EV' : '✈️ DEPLASMAN';
-
-  const canliMi = mac.status === 'IN_PLAY' || mac.status === 'PAUSED';
-  let gs = geriSayimHesapla(mac.utcDate);
-
-  let geriSayimHtml = '';
-  if (canliMi) {
-    geriSayimHtml = `
-      <div class="geri-sayim">
-        <div class="gs-birim" style="border-color:var(--kirmizi);min-width:auto;">
-          <span class="gs-sayi" style="color:var(--kirmizi-acik);">🔴 CANLI</span>
-          <span class="gs-etiket">Şu an oynanıyor</span>
+    $('#sonraki-kart').innerHTML = `
+      <div class="sonraki-icerik">
+        <div class="sonraki-tarih">
+          <span class="sonraki-gun">${t.gun}</span>
+          <span class="sonraki-ay">${t.ay}</span>
+          <span class="sonraki-saat">${t.saat}</span>
+        </div>
+        <div class="sonraki-bilgi">
+          <div class="sonraki-takimlar">
+            ${ev} <span style="color:var(--sari);font-weight:500;">vs</span> ${dep}
+            <span class="evdep">${evdepEtiket}</span>
+          </div>
+          <div class="sonraki-turnuva">Premier League</div>
+          <div class="sonraki-tam-tarih">📅 ${t.tam} · ${t.saat}</div>
+          ${geriSayimHtml}
         </div>
       </div>
     `;
-  } else if (!gs.gecti) {
-    geriSayimHtml = `
-      <div class="geri-sayim" data-tarih="${mac.utcDate}">
-        <div class="gs-birim">
-          <span class="gs-sayi" data-gs="gun">${gs.gun}</span>
-          <span class="gs-etiket">Gün</span>
-        </div>
-        <div class="gs-birim">
-          <span class="gs-sayi" data-gs="saat">${gs.saat}</span>
-          <span class="gs-etiket">Saat</span>
-        </div>
-        <div class="gs-birim">
-          <span class="gs-sayi" data-gs="dakika">${gs.dakika}</span>
-          <span class="gs-etiket">Dakika</span>
-        </div>
-        <div class="gs-birim">
-          <span class="gs-sayi" data-gs="saniye">${gs.saniye}</span>
-          <span class="gs-etiket">Saniye</span>
-        </div>
-      </div>
-    `;
+    $('#sonraki-alan').style.display = 'block';
   }
+};
 
-  $('#sonraki-kart').innerHTML = `
-    <div class="sonraki-icerik">
-      <div class="sonraki-tarih">
-        <span class="sonraki-gun">${t.gun}</span>
-        <span class="sonraki-ay">${t.ay}</span>
-        <span class="sonraki-saat">${t.saat}</span>
-      </div>
-      <div class="sonraki-bilgi">
-        <div class="sonraki-takimlar">
-          ${ev} <span style="color:var(--sari);font-weight:500;">vs</span> ${dep}
-          <span class="evdep">${evdepEtiket}</span>
-        </div>
-        <div class="sonraki-turnuva">${turnuva}</div>
-        <div class="sonraki-tam-tarih">📅 ${t.tam} · ${t.saat}</div>
-        ${geriSayimHtml}
-      </div>
-    </div>
-  `;
-  $('#sonraki-alan').style.display = 'block';
-}
-
-/* ===================== GERİ SAYIM ===================== */
-let geriSayimTimer = null;
-
-function geriSayimBaslat() {
-  if (geriSayimTimer) clearInterval(geriSayimTimer);
-
-  geriSayimTimer = setInterval(() => {
+/* ============================================================
+   MODÜL 15: GERİ SAYIM
+   ============================================================ */
+const GeriSayim = {
+  timer: null,
+  baslat() {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => this.guncelle(), 1000);
+  },
+  guncelle() {
     const gsAlan = document.querySelector('.geri-sayim[data-tarih]');
     if (!gsAlan) return;
+    const tarihStr = gsAlan.getAttribute('data-tarih'); if (!tarihStr) return;
+    const gs = Yardimci.geriSayimHesapla(tarihStr);
+    if (gs.gecti) { clearInterval(this.timer); return; }
+    const q = s => gsAlan.querySelector(`[data-gs="${s}"]`);
+    if (q('gun')) q('gun').textContent = gs.gun;
+    if (q('saat')) q('saat').textContent = gs.saat;
+    if (q('dakika')) q('dakika').textContent = gs.dakika;
+    if (q('saniye')) q('saniye').textContent = gs.saniye;
+  }
+};
 
-    const tarihStr = gsAlan.getAttribute('data-tarih');
-    if (!tarihStr) return;
+/* ============================================================
+   MODÜL 16: GRAFİKLER
+   ============================================================ */
+const Grafikler = {
+  puanCiz(etiketler, puanlar, takimIsim) {
+    const canvas = document.getElementById('puan-grafigi'); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (Durum.grafikler.puan) Durum.grafikler.puan.destroy();
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(56,189,248,0.35)');
+    gradient.addColorStop(1, 'rgba(56,189,248,0.02)');
 
-    const gs = geriSayimHesapla(tarihStr);
-    if (gs.gecti) {
-      clearInterval(geriSayimTimer);
-      return;
-    }
-
-    const gunEl = gsAlan.querySelector('[data-gs="gun"]');
-    const saatEl = gsAlan.querySelector('[data-gs="saat"]');
-    const dakikaEl = gsAlan.querySelector('[data-gs="dakika"]');
-    const saniyeEl = gsAlan.querySelector('[data-gs="saniye"]');
-
-    if (gunEl) gunEl.textContent = gs.gun;
-    if (saatEl) saatEl.textContent = gs.saat;
-    if (dakikaEl) dakikaEl.textContent = gs.dakika;
-    if (saniyeEl) saniyeEl.textContent = gs.saniye;
-  }, 1000);
-}
-
-/* ===================== GRAFİK ===================== */
-function grafikCiz(etiketler, puanlar) {
-  const ctx = document.getElementById('puan-grafigi').getContext('2d');
-  if (durum.puanGrafik) durum.puanGrafik.destroy();
-
-  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-  gradient.addColorStop(0, 'rgba(56,189,248,0.35)');
-  gradient.addColorStop(1, 'rgba(56,189,248,0.02)');
-
-  durum.puanGrafik = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: etiketler,
-      datasets: [{
-        label: 'Kümülatif Puan',
-        data: puanlar,
-        borderColor: '#38bdf8',
-        backgroundColor: gradient,
-        borderWidth: 3,
-        fill: true,
-        tension: 0.35,
-        pointRadius: 4,
-        pointHoverRadius: 7,
-        pointBackgroundColor: '#0a0f1c',
-        pointBorderColor: '#38bdf8',
-        pointBorderWidth: 2,
-        pointHoverBackgroundColor: '#38bdf8',
-        pointHoverBorderColor: '#fff'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1e293b',
-          titleColor: '#f8fafc',
-          bodyColor: '#e2e8f0',
-          borderColor: '#334155',
-          borderWidth: 1,
-          padding: 12,
-          cornerRadius: 8,
-          displayColors: false,
-          callbacks: { label: ctx => `Toplam Puan: ${ctx.parsed.y}` }
-        }
+    Durum.grafikler.puan = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: etiketler,
+        datasets: [{
+          label: `${takimIsim} - Kümülatif Puan`,
+          data: puanlar,
+          borderColor: '#38bdf8',
+          backgroundColor: gradient,
+          borderWidth: 3, fill: true, tension: 0.35,
+          pointRadius: 4, pointHoverRadius: 7,
+          pointBackgroundColor: '#0a0f1c',
+          pointBorderColor: '#38bdf8', pointBorderWidth: 2
+        }]
       },
-      scales: {
-        x: {
-          grid: { color: 'rgba(51,65,85,0.3)', drawBorder: false },
-          ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } }
-        },
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(51,65,85,0.3)', drawBorder: false },
-          ticks: {
-            color: '#94a3b8',
-            font: { size: 10, weight: '600' },
-            stepSize: 3,
-            callback: v => v + ' P'
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0',
+            borderColor: '#334155', borderWidth: 1, padding: 12, cornerRadius: 8,
+            displayColors: false,
+            callbacks: { label: c => `Toplam Puan: ${c.parsed.y}` }
           }
-        }
-      },
-      animation: { duration: 800, easing: 'easeOutQuart' }
-    }
-  });
-}
-
-/* ===================== MAÇ LİSTESİ (FİLTRELİ) ===================== */
-function macListesiCiz() {
-  const alan = $('#mac-listesi');
-  const takimId = durum.seciliTakim?.id;
-  const maclar = durum.tumMaclar;
-  const macPuanlari = durum.macPuanlari;
-
-  if (!maclar || !maclar.length) {
-    alan.innerHTML = '<div class="bos-kutu">Maç bulunamadı.</div>';
-    return;
-  }
-
-  const gelecekler = maclar
-    .filter(m => m.status !== 'FINISHED')
-    .sort((a,b) => new Date(a.utcDate) - new Date(b.utcDate));
-  const bitenler = maclar
-    .filter(m => m.status === 'FINISHED')
-    .sort((a,b) => new Date(b.utcDate) - new Date(a.utcDate));
-
-  // Filtre uygula
-  let gosterilecek = [];
-  if (durum.macFiltre === 'gelecek') {
-    gosterilecek = gelecekler;
-  } else if (durum.macFiltre === 'gecmis') {
-    gosterilecek = bitenler;
-  } else {
-    gosterilecek = gelecekler.concat(bitenler);
-  }
-
-  if (!gosterilecek.length) {
-    const mesaj = durum.macFiltre === 'gelecek'
-      ? 'Sıradaki maç bulunmuyor.'
-      : durum.macFiltre === 'gecmis'
-        ? 'Geçmiş maç bulunmuyor.'
-        : 'Maç bulunamadı.';
-    alan.innerHTML = `<div class="bos-kutu">${mesaj}</div>`;
-    return;
-  }
-
-  alan.innerHTML = gosterilecek.map(m => {
-    const t = tarihFormatla(m.utcDate);
-    const ev = kacis(m.homeTeam?.shortName || m.homeTeam?.name || '?');
-    const dep = kacis(m.awayTeam?.shortName || m.awayTeam?.name || '?');
-    const bitti = m.status === 'FINISHED';
-    const siradakiMi = durum.sonrakiMac && m.id === durum.sonrakiMac.id;
-
-    let skorHtml = '';
-    let kartSinif = 'mac-kart';
-    let puanRozet = '';
-
-    if (bitti) {
-      const evGol = m.score.fullTime.home;
-      const depGol = m.score.fullTime.away;
-      const puanBilgi = macPuanlari[m.id] || { puan:0, sonuc:'berabere' };
-
-      skorHtml = `<div class="mac-skor ${puanBilgi.sonuc === 'galibiyet' ? 'kazandi' : puanBilgi.sonuc === 'maglubiyet' ? 'kaybetti' : 'berabere'}">${evGol} - ${depGol}</div>`;
-
-      const rozetSinif = puanBilgi.puan === 3 ? 'p3' : puanBilgi.puan === 1 ? 'p1' : 'p0';
-      const rozetMetin = puanBilgi.puan === 3 ? '+3' : puanBilgi.puan === 1 ? '+1' : '+0';
-      puanRozet = `<span class="mac-puan-rozet ${rozetSinif}">${rozetMetin}</span>`;
-
-      if (puanBilgi.sonuc === 'galibiyet') kartSinif += ' bitti';
-      else if (puanBilgi.sonuc === 'maglubiyet') kartSinif += ' magbubiyet';
-      else kartSinif += ' berabere';
-    } else {
-      skorHtml = `<div class="mac-skor" style="color:var(--mavi);background:rgba(56,189,248,0.08);font-size:0.85rem;">vs</div>`;
-
-      if (siradakiMi) {
-        puanRozet = `<span class="mac-puan-rozet siradaki">⚡ SIRADAKİ</span>`;
-        kartSinif += ' gelecek siradaki';
-      } else {
-        puanRozet = `<span class="mac-puan-rozet gelecek">Yakında</span>`;
-        kartSinif += ' gelecek';
+        },
+        scales: {
+          x: { grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } } },
+          y: { beginAtZero: true, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8', font: { size: 10, weight: '600' }, stepSize: 3, callback: v => v + ' P' } }
+        },
+        animation: { duration: 800, easing: 'easeOutQuart' }
       }
+    });
+  },
+
+  golCiz(golGecmisi, takimIsim) {
+    const canvas = document.getElementById('gol-grafigi'); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (Durum.grafikler.gol) Durum.grafikler.gol.destroy();
+    Durum.grafikler.gol = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: golGecmisi.map(g => g.hafta),
+        datasets: [
+          { label: 'Atılan', data: golGecmisi.map(g => g.atilan), backgroundColor: 'rgba(74,222,128,0.7)', borderColor: '#4ade80', borderWidth: 1, borderRadius: 4 },
+          { label: 'Yenilen', data: golGecmisi.map(g => g.yenilen), backgroundColor: 'rgba(239,68,68,0.7)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: '#94a3b8', font: { size: 11, weight: '600' }, boxWidth: 12 } },
+          tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1, padding: 10, cornerRadius: 8 }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8', font: { size: 10 }, stepSize: 1 } }
+        }
+      }
+    });
+  },
+
+  ligPuanCiz(tablo) {
+    const canvas = document.getElementById('lig-puan-grafigi'); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (Durum.grafikler.ligPuan) Durum.grafikler.ligPuan.destroy();
+    const tG = tablo.reduce((t, s) => t + s.won, 0);
+    const tB = tablo.reduce((t, s) => t + s.draw, 0);
+    const tM = tablo.reduce((t, s) => t + s.lost, 0);
+    Durum.grafikler.ligPuan = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Galibiyet', 'Beraberlik', 'Mağlubiyet'],
+        datasets: [{ data: [tG, tB, tM], backgroundColor: ['rgba(74,222,128,0.85)', 'rgba(250,204,21,0.85)', 'rgba(239,68,68,0.85)'], borderColor: '#0a0f1c', borderWidth: 3 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11, weight: '600' }, padding: 12, boxWidth: 14, boxHeight: 14 } },
+          tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1, padding: 12, cornerRadius: 8 }
+        },
+        cutout: '65%'
+      }
+    });
+  },
+
+  karsilastirmaCiz(veriA, veriB, isimA, isimB) {
+    const canvas = document.getElementById('karsilastirma-grafigi'); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (Durum.grafikler.karsilastirma) Durum.grafikler.karsilastirma.destroy();
+    const tumEtiketler = Yardimci.benzersiz([...veriA.etiketler, ...veriB.etiketler])
+      .sort((a, b) => parseInt(a.replace('H', '')) - parseInt(b.replace('H', '')));
+    const veriA2 = tumEtiketler.map(e => { const i = veriA.etiketler.indexOf(e); return i >= 0 ? veriA.puanlar[i] : null; });
+    const veriB2 = tumEtiketler.map(e => { const i = veriB.etiketler.indexOf(e); return i >= 0 ? veriB.puanlar[i] : null; });
+
+    Durum.grafikler.karsilastirma = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: tumEtiketler,
+        datasets: [
+          { label: isimA, data: veriA2, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.1)', borderWidth: 3, fill: false, tension: 0.35, pointRadius: 3, spanGaps: true },
+          { label: isimB, data: veriB2, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 3, fill: false, tension: 0.35, pointRadius: 3, spanGaps: true }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, labels: { color: '#94a3b8', font: { size: 12, weight: '700' }, boxWidth: 14, padding: 12 } },
+          tooltip: { backgroundColor: '#1e293b', titleColor: '#f8fafc', bodyColor: '#e2e8f0', borderColor: '#334155', borderWidth: 1, padding: 12, cornerRadius: 8 }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+          y: { beginAtZero: true, grid: { color: 'rgba(51,65,85,0.3)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+        }
+      }
+    });
+  }
+};
+
+/* ============================================================
+   MODÜL 17: MAÇ LİSTESİ
+   ============================================================ */
+const MacListesi = {
+  ciz() {
+    const alan = $('#mac-listesi'); if (!alan) return;
+    const takimId = Durum.seciliTakim?.id;
+    const maclar = Durum.tumMaclar;
+    const macPuanlari = Durum.macPuanlari;
+
+    if (!maclar || !maclar.length) {
+      alan.innerHTML = '<div class="bos-kutu">Maç bulunamadı.</div>'; return;
     }
 
-    const evdeMi = m.homeTeam?.id === takimId;
-    const evDepIsaret = evdeMi ? '🏠' : '✈️';
+    const gelecekler = maclar.filter(m => m.status !== 'FINISHED').sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+    const bitenler = maclar.filter(m => m.status === 'FINISHED').sort((a, b) => new Date(b.utcDate) - new Date(a.utcDate));
 
+    let gosterilecek = [];
+    if (Durum.macFiltre === 'gelecek') gosterilecek = gelecekler;
+    else if (Durum.macFiltre === 'gecmis') gosterilecek = bitenler;
+    else gosterilecek = gelecekler.concat(bitenler);
+
+    if (!gosterilecek.length) {
+      const mesaj = Durum.macFiltre === 'gelecek' ? 'Sıradaki maç bulunmuyor.'
+        : Durum.macFiltre === 'gecmis' ? 'Geçmiş maç bulunmuyor.' : 'Maç bulunamadı.';
+      alan.innerHTML = `<div class="bos-kutu">${mesaj}</div>`; return;
+    }
+
+    alan.innerHTML = gosterilecek.map(m => {
+      const t = Yardimci.tarihFormatla(m.utcDate);
+      const ev = Yardimci.kacis(m.homeTeam?.shortName || '?');
+      const dep = Yardimci.kacis(m.awayTeam?.shortName || '?');
+      const bitti = m.status === 'FINISHED';
+      const siradakiMi = Durum.sonrakiMac && m.id === Durum.sonrakiMac.id;
+
+      let skorHtml = '', kartSinif = 'mac-kart', puanRozet = '';
+
+      if (bitti) {
+        const evGol = m.score.fullTime.home, depGol = m.score.fullTime.away;
+        const p = macPuanlari[m.id] || { puan: 0, sonuc: 'berabere' };
+        skorHtml = `<div class="mac-skor ${p.sonuc === 'galibiyet' ? 'kazandi' : p.sonuc === 'maglubiyet' ? 'kaybetti' : 'berabere'}">${evGol} - ${depGol}</div>`;
+        const rs = p.puan === 3 ? 'p3' : p.puan === 1 ? 'p1' : 'p0';
+        const rm = p.puan === 3 ? '+3' : p.puan === 1 ? '+1' : '+0';
+        puanRozet = `<span class="mac-puan-rozet ${rs}">${rm}</span>`;
+        if (p.sonuc === 'galibiyet') kartSinif += ' bitti';
+        else if (p.sonuc === 'maglubiyet') kartSinif += ' magbubiyet';
+        else kartSinif += ' berabere';
+      } else {
+        skorHtml = `<div class="mac-skor" style="color:var(--mavi);background:rgba(56,189,248,0.08);font-size:0.85rem;">vs</div>`;
+        if (siradakiMi) { puanRozet = `<span class="mac-puan-rozet siradaki">⚡ SIRADAKİ</span>`; kartSinif += ' gelecek siradaki'; }
+        else { puanRozet = `<span class="mac-puan-rozet gelecek">Yakında</span>`; kartSinif += ' gelecek'; }
+      }
+
+      const evdeMi = m.homeTeam?.id === takimId;
+      const evDepIsaret = evdeMi ? '🏠' : '✈️';
+
+      return `
+        <div class="${kartSinif}" data-mac-id="${m.id}">
+          <div class="mac-tarih"><span class="gun">${t.gun}</span>${t.ay}</div>
+          <div class="mac-takimlar">
+            <span style="opacity:0.7;font-size:0.75rem;margin-right:0.3rem;">${evDepIsaret}</span>
+            ${ev} <span style="color:var(--metin-gri);font-weight:400;">vs</span> ${dep}
+            ${puanRozet}
+          </div>
+          ${skorHtml}
+        </div>
+      `;
+    }).join('');
+
+    alan.querySelectorAll('.mac-kart').forEach(k => {
+      k.addEventListener('click', () => MacDetay.goster(parseInt(k.dataset.macId, 10)));
+    });
+  },
+
+  filtreBagla() {
+    $$('.mac-filtre-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $$('.mac-filtre-btn').forEach(b => b.classList.remove('aktif'));
+        btn.classList.add('aktif');
+        Durum.macFiltre = btn.dataset.mfiltre || 'tumu';
+        this.ciz();
+      });
+    });
+  }
+};
+
+/* ============================================================
+   MODÜL 18: MAÇ DETAY
+   ============================================================ */
+const MacDetay = {
+  goster(macId) {
+    const mac = Durum.tumMaclar.find(m => m.id === macId); if (!mac) return;
+    const t = Yardimci.tarihFormatla(mac.utcDate);
+    const bitti = mac.status === 'FINISHED';
+    let skorBolum = '';
+    if (bitti) {
+      skorBolum = `
+        <div style="text-align:center;font-size:2rem;font-weight:900;color:var(--metin-beyaz);margin:1rem 0;">
+          ${mac.score.fullTime.home} - ${mac.score.fullTime.away}
+        </div>
+        <div style="text-align:center;color:var(--metin-gri);font-size:0.85rem;">İlk Yarı: ${mac.score.halfTime.home ?? '-'} - ${mac.score.halfTime.away ?? '-'}</div>
+      `;
+    } else {
+      skorBolum = `<div style="text-align:center;font-size:1.5rem;font-weight:900;color:var(--mavi);margin:1rem 0;">${t.saat}</div>`;
+    }
+    Modal.ac('⚽ Maç Detayı', `
+      <div style="text-align:center;margin-bottom:1rem;">
+        <div style="font-size:0.75rem;color:var(--metin-gri);text-transform:uppercase;letter-spacing:1px;font-weight:700;">${t.tam}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center;">
+        <div style="text-align:right;font-weight:800;color:var(--metin-beyaz);">${Yardimci.kacis(mac.homeTeam.name)}</div>
+        <div style="font-size:0.8rem;color:var(--metin-gri);">VS</div>
+        <div style="text-align:left;font-weight:800;color:var(--metin-beyaz);">${Yardimci.kacis(mac.awayTeam.name)}</div>
+      </div>
+      ${skorBolum}
+      <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--sinir);font-size:0.8rem;color:var(--metin-gri);">
+        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Statü</span><strong style="color:var(--metin-beyaz);">${mac.kisaDurum}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Hafta</span><strong style="color:var(--metin-beyaz);">${mac.matchday || '-'}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Hakem</span><strong style="color:var(--metin-beyaz);">${Yardimci.kacis(mac.referee || '-')}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Stadyum</span><strong style="color:var(--metin-beyaz);">${Yardimci.kacis(mac.venue || '-')}</strong></div>
+      </div>
+    `);
+  }
+};
+
+/* ============================================================
+   MODÜL 19: İSTATİSTİKLER
+   ============================================================ */
+const Istatistikler = {
+  async ciz() {
+    if (!Durum.ligPuanTablosu) await PuanTablosu.yukle2();
+    const tablo = Durum.ligPuanTablosu; if (!tablo) return;
+
+    const toplamMac = tablo.reduce((t, s) => t + s.playedGames, 0) / 2;
+    const toplamGol = tablo.reduce((t, s) => t + s.goalsFor, 0);
+    const golOrt = Yardimci.ortalama(toplamGol, toplamMac);
+    const el = id => document.getElementById(id);
+
+    if (el('lig-toplam-mac')) el('lig-toplam-mac').textContent = Math.round(toplamMac);
+    if (el('lig-toplam-gol')) el('lig-toplam-gol').textContent = toplamGol;
+    if (el('lig-gol-ort')) el('lig-gol-ort').textContent = `Maç başı ${golOrt} gol`;
+    if (el('lig-lider') && tablo[0]) el('lig-lider').textContent = tablo[0].team.shortName;
+    if (el('lig-son') && tablo[tablo.length - 1]) el('lig-son').textContent = tablo[tablo.length - 1].team.shortName;
+
+    const golcuSira = Yardimci.sirala(tablo, 'goalsFor', true).slice(0, 10);
+    const maksGol = golcuSira[0]?.goalsFor || 1;
+    if (el('golcu-listesi')) {
+      el('golcu-listesi').innerHTML = golcuSira.map(s => `
+        <div class="cubuk-satir">
+          <span class="cubuk-etiket">${Yardimci.kacis(s.team.shortName)}</span>
+          <div class="cubuk-arka"><div class="cubuk-dolu" style="width:${Yardimci.yuzde(s.goalsFor, maksGol)}%;background:linear-gradient(90deg,var(--yesil),var(--mavi));"></div></div>
+          <span class="cubuk-deger">${s.goalsFor}</span>
+        </div>
+      `).join('');
+    }
+
+    const savunmaSira = Yardimci.sirala(tablo, 'goalsAgainst', false).slice(0, 10);
+    const maksYenen = savunmaSira[savunmaSira.length - 1]?.goalsAgainst || 1;
+    if (el('savunma-listesi')) {
+      el('savunma-listesi').innerHTML = savunmaSira.map(s => `
+        <div class="cubuk-satir">
+          <span class="cubuk-etiket">${Yardimci.kacis(s.team.shortName)}</span>
+          <div class="cubuk-arka"><div class="cubuk-dolu" style="width:${100 - Yardimci.yuzde(s.goalsAgainst, maksYenen)}%;background:linear-gradient(90deg,var(--mavi),var(--yesil));"></div></div>
+          <span class="cubuk-deger">${s.goalsAgainst}</span>
+        </div>
+      `).join('');
+    }
+    Grafikler.ligPuanCiz(tablo);
+  }
+};
+
+/* ============================================================
+   MODÜL 20: KARŞILAŞTIRMA
+   ============================================================ */
+const Karsilastirma = {
+  baslat() {
+    this.secenekleriDoldur();
+    const a = $('#karsilastir-a'), b = $('#karsilastir-b');
+    if (!a || !b) return;
+    if (!a.value && Durum.takimlar[0]) a.value = Durum.takimlar[0].id;
+    if (!b.value && Durum.takimlar[1]) b.value = Durum.takimlar[1].id;
+
+    [a, b].forEach(sel => sel.removeEventListener('change', this._h));
+    this._h = () => this.karsilastir();
+    [a, b].forEach(sel => sel.addEventListener('change', this._h));
+    if (a.value && b.value) this.karsilastir();
+  },
+
+  secenekleriDoldur() {
+    const a = $('#karsilastir-a'), b = $('#karsilastir-b');
+    if (!a || !b || a.options.length > 0) return;
+    const opts = Durum.takimlar.map(t => `<option value="${t.id}">${Yardimci.kacis(t.shortName || t.name)}</option>`).join('');
+    a.innerHTML = opts; b.innerHTML = opts;
+  },
+
+  async karsilastir() {
+    const a = $('#karsilastir-a'), b = $('#karsilastir-b'), icerik = $('#karsilastirma-icerik');
+    if (!a || !b || !icerik) return;
+    const idA = parseInt(a.value, 10), idB = parseInt(b.value, 10);
+    if (!idA || !idB) return;
+    if (idA === idB) { icerik.innerHTML = '<div class="bos-kutu">Aynı takımı seçtiniz. Farklı takımlar seçin.</div>'; return; }
+
+    icerik.innerHTML = '<div class="yukleniyor"><div class="donen"></div><div>Karşılaştırılıyor...</div></div>';
+    try {
+      const [macA, macB] = await Promise.all([
+        API.takimMaclariGetir(idA, Durum.sezon),
+        API.takimMaclariGetir(idB, Durum.sezon)
+      ]);
+      const istA = this.hesapla(macA, idA), istB = this.hesapla(macB, idB);
+      const isimA = Durum.takimlar.find(t => t.id === idA)?.shortName || 'A';
+      const isimB = Durum.takimlar.find(t => t.id === idB)?.shortName || 'B';
+      icerik.innerHTML = this.htmlOlustur(istA, istB, isimA, isimB);
+      Grafikler.karsilastirmaCiz(
+        { etiketler: istA.etiketler, puanlar: istA.puanlar },
+        { etiketler: istB.etiketler, puanlar: istB.puanlar },
+        isimA, isimB
+      );
+    } catch (hata) {
+      icerik.innerHTML = `<div class="hata-kutu"><strong>❌ Karşılaştırma başarısız</strong><div>${Yardimci.kacis(hata.message)}</div></div>`;
+    }
+  },
+
+  hesapla(maclar, takimId) {
+    const bitenler = maclar.filter(m => m.status === 'FINISHED').sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
+    let puan = 0, g = 0, b = 0, m = 0, at = 0, ye = 0;
+    const etiketler = [], puanlar = [];
+    bitenler.forEach((mac, i) => {
+      const ev = mac.score.fullTime.home ?? 0, dep = mac.score.fullTime.away ?? 0;
+      const evdeMi = mac.homeTeam.id === takimId;
+      const kendi = evdeMi ? ev : dep, rakip = evdeMi ? dep : ev;
+      at += kendi; ye += rakip;
+      if (kendi > rakip) { puan += 3; g++; }
+      else if (kendi < rakip) { m++; }
+      else { puan += 1; b++; }
+      etiketler.push(`H${mac.matchday || i + 1}`);
+      puanlar.push(puan);
+    });
+    return { puan, g, b, m, at, ye, averaj: at - ye, oynanan: bitenler.length, etiketler, puanlar };
+  },
+
+  htmlOlustur(a, b, isimA, isimB) {
+    const satirlar = [
+      { e: 'Puan', a: a.puan, b: b.puan }, { e: 'Oynanan', a: a.oynanan, b: b.oynanan },
+      { e: 'Galibiyet', a: a.g, b: b.g }, { e: 'Beraberlik', a: a.b, b: b.b },
+      { e: 'Mağlubiyet', a: a.m, b: b.m }, { e: 'Atılan Gol', a: a.at, b: b.at },
+      { e: 'Yenilen Gol', a: a.ye, b: b.ye }, { e: 'Averaj', a: a.averaj, b: b.averaj }
+    ];
+    const html = satirlar.map(s => {
+      const kA = s.a > s.b, kB = s.b > s.a;
+      return `
+        <div class="karsilastirma-satir">
+          <div class="karsilastirma-deger ${kA ? 'kazanan' : (s.a < s.b ? 'kaybeden' : '')}">${s.a}</div>
+          <div>
+            <div class="karsilastirma-etiket">${s.e}</div>
+            <div class="karsilastirma-bar">
+              <div class="bar-sol" style="width:${Yardimci.yuzde(Math.abs(s.a), Math.abs(s.a) + Math.abs(s.b))}%;"></div>
+              <div class="bar-sag" style="width:${Yardimci.yuzde(Math.abs(s.b), Math.abs(s.a) + Math.abs(s.b))}%;"></div>
+            </div>
+          </div>
+          <div class="karsilastirma-deger ${kB ? 'kazanan' : (s.b < s.a ? 'kaybeden' : '')}">${s.b}</div>
+        </div>
+      `;
+    }).join('');
     return `
-      <div class="${kartSinif}">
-        <div class="mac-tarih">
-          <span class="gun">${t.gun}</span>
-          ${t.ay}
-        </div>
-        <div class="mac-takimlar">
-          <span style="opacity:0.7;font-size:0.75rem;margin-right:0.3rem;">${evDepIsaret}</span>
-          ${ev} <span style="color:var(--metin-gri);font-weight:400;">vs</span> ${dep}
-          ${puanRozet}
-        </div>
-        ${skorHtml}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1rem;text-align:center;">
+        <div style="font-weight:800;color:var(--mavi);font-size:1rem;">${Yardimci.kacis(isimA)}</div>
+        <div style="font-weight:800;color:var(--kirmizi-acik);font-size:1rem;">${Yardimci.kacis(isimB)}</div>
+      </div>
+      ${html}
+    `;
+  }
+};
+
+/* ============================================================
+   MODÜL 21: FAVORİLER SEKMESİ
+   ============================================================ */
+const FavorilerSekme = {
+  ciz() {
+    const icerik = $('#favoriler-icerik'); if (!icerik) return;
+    if (Favoriler.liste.length === 0) {
+      icerik.innerHTML = '<div class="bos-kutu">Henüz favori takım eklemediniz.</div>'; return;
+    }
+    const favTakimlar = Durum.takimlar.filter(t => Favoriler.liste.includes(t.id));
+    icerik.innerHTML = `
+      <div class="stat-grid">
+        ${favTakimlar.map(t => {
+          const p = Durum.ligPuanTablosu?.find(s => s.team.id === t.id);
+          return `
+            <div class="stat-kart vurgu-sari" style="cursor:pointer;" data-fav-takim="${t.id}">
+              <div class="stat-etiket">${Yardimci.kacis(t.shortName || t.name)}</div>
+              <div class="stat-deger">${p?.points ?? '—'}<span style="font-size:0.8rem;color:var(--metin-gri);font-weight:600;"> P</span></div>
+              <div class="stat-alt">${p ? `${p.position}. sıra · ${p.playedGames} maç` : 'Bilgi yok'}</div>
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
-  }).join('');
-}
-
-/* ===================== OLAYLAR ===================== */
-function puanDurumButonunuBagla() {
-  const buton = $('#puan-durum-buton');
-  const alan = $('#puan-tablo-alan');
-  if (!buton || !alan) return;
-
-  buton.addEventListener('click', async () => {
-    durum.puanTabloAcik = !durum.puanTabloAcik;
-
-    if (durum.puanTabloAcik) {
-      alan.classList.add('acik');
-      buton.classList.add('aktif');
-      buton.textContent = '✖ Puan Durumunu Kapat';
-
-      if (!durum.puanTablosuYuklendi) {
-        if (!durum.sezon) await sezonuAlgila();
-        await puanDurumuGetir();
-      }
-    } else {
-      alan.classList.remove('acik');
-      buton.classList.remove('aktif');
-      buton.textContent = '📊 Lig Puan Durumu';
-    }
-  });
-}
-
-function macFiltreButonlariniBagla() {
-  $$('.mac-filtre-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      $$('.mac-filtre-btn').forEach(b => b.classList.remove('aktif'));
-      btn.classList.add('aktif');
-      durum.macFiltre = btn.dataset.mfiltre || 'tumu';
-      macListesiCiz();
+    icerik.querySelectorAll('[data-fav-takim]').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = parseInt(el.dataset.favTakim, 10);
+        const t = Durum.takimlar.find(x => x.id === id);
+        if (t) {
+          Sekmeler.gecis('takimlar');
+          setTimeout(() => {
+            $$('.balon').forEach(b => b.classList.toggle('aktif', parseInt(b.dataset.id, 10) === id));
+            TakimDetay.sec(id, t.name);
+          }, 100);
+        }
+      });
     });
-  });
-}
+  }
+};
 
-/* ===================== SAYFA GÖRÜNÜRLÜĞÜ ===================== */
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    const gsAlan = document.querySelector('.geri-sayim[data-tarih]');
-    if (gsAlan) {
-      const tarihStr = gsAlan.getAttribute('data-tarih');
-      const gs = geriSayimHesapla(tarihStr);
-      if (!gs.gecti) {
-        const gunEl = gsAlan.querySelector('[data-gs="gun"]');
-        const saatEl = gsAlan.querySelector('[data-gs="saat"]');
-        const dakikaEl = gsAlan.querySelector('[data-gs="dakika"]');
-        const saniyeEl = gsAlan.querySelector('[data-gs="saniye"]');
-        if (gunEl) gunEl.textContent = gs.gun;
-        if (saatEl) saatEl.textContent = gs.saat;
-        if (dakikaEl) dakikaEl.textContent = gs.dakika;
-        if (saniyeEl) saniyeEl.textContent = gs.saniye;
+/* ============================================================
+   MODÜL 22: DIŞA AKTAR
+   ============================================================ */
+const DisaAktar = {
+  bagla() {
+    $('#disa-aktar-buton')?.addEventListener('click', () => this.menuGoster());
+  },
+  menuGoster() {
+    Modal.ac('💾 Veriyi Dışa Aktar', `
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <button class="btn btn-buyuk" id="csv-puan" style="justify-content:center;">📊 Puan Tablosu (CSV)</button>
+        <button class="btn btn-buyuk" id="json-puan" style="justify-content:center;">📋 Puan Tablosu (JSON)</button>
+        <button class="btn btn-buyuk" id="csv-fav" style="justify-content:center;">⭐ Favoriler (CSV)</button>
+      </div>
+    `);
+    setTimeout(() => {
+      $('#csv-puan') && ($('#csv-puan').onclick = () => {
+        if (!Durum.ligPuanTablosu) return Bildirim.uyari('Puan tablosu yüklü değil');
+        const basliklar = ['Sıra', 'Takım', 'O', 'G', 'B', 'M', 'A', 'Y', 'AV', 'P'];
+        const satirlar = Durum.ligPuanTablosu.map(s => [s.position, s.team.shortName, s.playedGames, s.won, s.draw, s.lost, s.goalsFor, s.goalsAgainst, s.goalDifference, s.points]);
+        Yardimci.indir(Yardimci.csvOlustur(satirlar, basliklar), `puan-tablosu-${Durum.sezon}.csv`, 'text/csv;charset=utf-8');
+        Bildirim.basari('CSV indirildi');
+      });
+      $('#json-puan') && ($('#json-puan').onclick = () => {
+        if (!Durum.ligPuanTablosu) return Bildirim.uyari('Puan tablosu yüklü değil');
+        Yardimci.indir(JSON.stringify(Durum.ligPuanTablosu, null, 2), `puan-tablosu-${Durum.sezon}.json`, 'application/json');
+        Bildirim.basari('JSON indirildi');
+      });
+      $('#csv-fav') && ($('#csv-fav').onclick = () => {
+        if (Favoriler.liste.length === 0) return Bildirim.uyari('Favori yok');
+        const satirlar = Durum.takimlar.filter(t => Favoriler.liste.includes(t.id)).map(t => [t.id, t.name]);
+        Yardimci.indir(Yardimci.csvOlustur(satirlar, ['ID', 'Takım']), 'favoriler.csv', 'text/csv;charset=utf-8');
+        Bildirim.basari('Favoriler indirildi');
+      });
+    }, 50);
+  }
+};
+
+/* ============================================================
+   MODÜL 23: KLAVYE
+   ============================================================ */
+const Klavye = {
+  bagla() {
+    document.addEventListener('keydown', e => {
+      const inputMu = ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName);
+      if (e.key === 'Escape') { if (Modal.acik) Modal.kapat(); return; }
+      if (inputMu) return;
+      switch (e.key.toLowerCase()) {
+        case '/': e.preventDefault(); $('#arama-input')?.focus(); break;
+        case 't': Tema.degistir(); break;
+        case 'r': this.yenile(); break;
+        case '1': Sekmeler.gecis('takimlar'); break;
+        case '2': Sekmeler.gecis('puan'); break;
+        case '3': Sekmeler.gecis('istatistik'); break;
+        case '4': Sekmeler.gecis('karsilastir'); break;
+        case '5': Sekmeler.gecis('favoriler'); break;
+        case '?': this.kisayollariGoster(); break;
       }
+    });
+    $('#kisayol-buton')?.addEventListener('click', () => this.kisayollariGoster());
+  },
+  yenile() {
+    Onbellek.temizle();
+    Durum.puanTablosuYuklendi = false;
+    Durum.puanTablosuYuklendi2 = false;
+    Bildirim.bilgi('Veriler yenileniyor...');
+    Takimlar.yukle();
+    if (Durum.puanTabloAcik) PuanTablosu.yukle();
+  },
+  kisayollariGoster() {
+    Modal.ac('⌨️ Klavye Kısayolları', `
+      <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.85rem;">
+        <div style="display:flex;justify-content:space-between;"><span>Arama</span><span class="klavye-kisayol">/</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Tema</span><span class="klavye-kisayol">T</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Yenile</span><span class="klavye-kisayol">R</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Sekmeler</span><span class="klavye-kisayol">1-5</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Bu pencere</span><span class="klavye-kisayol">?</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Kapat</span><span class="klavye-kisayol">Esc</span></div>
+      </div>
+    `);
+  }
+};
+
+/* ============================================================
+   MODÜL 24: HATA YÖNETİMİ
+   ============================================================ */
+const HataYonetimi = {
+  baslat() {
+    const kutu = $('#hata-kutusu');
+    kutu?.addEventListener('click', () => { kutu.style.display = 'none'; kutu.textContent = ''; });
+    window.addEventListener('error', e => this.goster('❌ ' + (e.message || e.error)));
+    window.addEventListener('unhandledrejection', e => this.goster('🔥 ' + (e.reason?.message || e.reason)));
+  },
+  goster(m) {
+    const k = $('#hata-kutusu'); if (!k) return;
+    k.style.display = 'block'; k.textContent += m + '\n';
+  }
+};
+
+/* ============================================================
+   MODÜL 25: API DURUM GÖSTERGESİ
+   ============================================================ */
+const ApiDurum = {
+  guncelle() {
+    const rozet = $('#api-durum-rozet');
+    if (!rozet) return;
+    const aktif = API.getAktifSaglayici();
+    if (aktif) {
+      rozet.style.display = 'inline-flex';
+      rozet.textContent = `🔌 ${aktif.ad}`;
+      rozet.title = `Aktif API: ${aktif.ad}`;
+      const renkler = {
+        'API-Football': 'var(--yesil)',
+        'OpenFootball': 'var(--mavi)',
+        'TheSportsDB': 'var(--sari)',
+        'livescoreFootball': 'var(--mor)'
+      };
+      rozet.style.color = renkler[aktif.ad] || 'var(--metin-gri)';
+    } else {
+      rozet.style.display = 'none';
     }
   }
+};
+
+/* ============================================================
+   MODÜL 26: API SEÇİM MODALI
+   ============================================================ */
+const ApiSecim = {
+  bagla() {
+    $('#api-secim-buton')?.addEventListener('click', () => this.goster());
+  },
+  goster() {
+    const saglayicilar = API.saglayicilariListele();
+    const aktifAd = API.aktifSaglayiciAd;
+
+    Modal.ac('🔌 API Kaynağı Seç', `
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <p style="font-size:0.85rem;color:var(--metin-gri);margin-bottom:0.5rem;">
+          Birincil API kaynağını seçin. "Otomatik" seçildiğinde tüm API'ler sırayla denenir.
+        </p>
+        <button class="btn btn-buyuk ${!aktifAd ? 'aktif' : ''}" data-api="" style="justify-content:center;">
+          🔄 Otomatik (Fallback Zinciri)
+        </button>
+        ${saglayicilar.map(s => `
+          <button class="btn btn-buyuk ${aktifAd === s.ad ? 'aktif' : ''}" data-api="${s.ad}" style="justify-content:center;">
+            ${s.ad === 'API-Football' ? '🔵' : s.ad === 'OpenFootball' ? '🟢' : s.ad === 'TheSportsDB' ? '🟡' : '🟣'} ${s.ad}
+          </button>
+        `).join('')}
+        <div style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--sinir);font-size:0.75rem;color:var(--metin-gri);">
+          <p><strong>API-Football:</strong> En zengin veri, günlük 100 istek limiti</p>
+          <p><strong>OpenFootball:</strong> Ücretsiz, API anahtarı gerekmez, günlük güncellenir</p>
+          <p><strong>TheSportsDB:</strong> Ücretsiz, geniş kapsam, demo anahtarı mevcut</p>
+          <p><strong>livescoreFootball:</strong> Açık kaynak, Premier Lig ve La Liga odaklı</p>
+        </div>
+      </div>
+    `);
+
+    setTimeout(() => {
+      $('#modal-icerik')?.querySelectorAll('[data-api]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ad = btn.dataset.api || null;
+          API.saglayiciSec(ad);
+          ApiDurum.guncelle();
+          Modal.kapat();
+          Bildirim.basari(ad ? `${ad} seçildi` : 'Otomatik API seçildi');
+          Klavye.yenile();
+        });
+      });
+    }, 50);
+  }
+};
+
+/* ============================================================
+   MODÜL 27: UYGULAMA
+   ============================================================ */
+const Uygulama = {
+  async baslat() {
+    HataYonetimi.baslat();
+    Tema.baslat();
+    Favoriler.baslat();
+    Modal.bagla();
+    Sekmeler.baslat();
+    PuanTablosu.butonBagla();
+    Takimlar.aramaBagla();
+    MacListesi.filtreBagla();
+    DisaAktar.bagla();
+    Klavye.bagla();
+    ApiSecim.bagla();
+
+    $('#yenile-buton')?.addEventListener('click', () => {
+      Klavye.yenile();
+      Bildirim.basari('Veriler yenilendi');
+    });
+
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) GeriSayim.guncelle(); });
+
+    await Takimlar.yukle();
+
+    const son = Depo.al(SABITLER.DEPO_ANAHTARLARI.SON_TAKIM);
+    if (son && son.id) {
+      const btn = document.querySelector(`.balon[data-id="${son.id}"]`);
+      if (btn) {
+        btn.classList.add('aktif');
+        setTimeout(() => TakimDetay.sec(son.id, son.isim), 300);
+      }
+    }
+    Bildirim.basari('Premier Lig Takip hazır!');
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  Uygulama.baslat().catch(err => {
+    console.error('Başlatma hatası:', err);
+    HataYonetimi.goster('Uygulama başlatılamadı: ' + err.message);
+  });
 });
 
-/* ===================== BAŞLAT ===================== */
-document.addEventListener('DOMContentLoaded', () => {
-  puanDurumButonunuBagla();
-  macFiltreButonlariniBagla();
-  takimlariGetir();
-});
+window.Takimlar = Takimlar;
+window.PuanTablosu = PuanTablosu;
 </script>
 </body>
 </html>
