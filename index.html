@@ -690,6 +690,16 @@ footer {
 }
 footer .kalp { color:var(--kirmizi-acik); }
 
+/* HATA KUTUSU */
+#hata-kutusu {
+  cursor:pointer;
+}
+#hata-kutusu::after {
+  content:' (kapatmak için tıkla)';
+  opacity:.7;
+  font-size:10px;
+}
+
 @media (max-width:600px) {
   .takim-baslik { flex-direction:column; text-align:center; }
   .takim-stats-mini { justify-content:center; }
@@ -712,7 +722,7 @@ footer .kalp { color:var(--kirmizi-acik); }
 </style>
 </head>
 <body>
-
+<div id="hata-kutusu" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:#fff;padding:10px;font-size:12px;display:none;font-family:monospace;white-space:pre-wrap;"></div>
 <header>
   <h1>⚽ Premier Lig Takım Takip</h1>
   <p class="alt-baslik">Takım seç · Puan grafiğini gör · Maç sonuçlarını incele</p>
@@ -782,6 +792,49 @@ footer .kalp { color:var(--kirmizi-acik); }
 
 <script>
 'use strict';
+
+/* ===================== HATA YAKALAMA ===================== */
+// Hata kutusunu kapatma
+const _hataKutusu = document.getElementById('hata-kutusu');
+if (_hataKutusu) {
+  _hataKutusu.addEventListener('click', e => {
+    e.currentTarget.style.display = 'none';
+    e.currentTarget.textContent = '';
+  });
+}
+
+// Genel hataları ekranda göster
+window.addEventListener('error', e => {
+  const kutu = document.getElementById('hata-kutusu');
+  if (kutu) {
+    kutu.style.display = 'block';
+    kutu.textContent += '❌ ' + (e.message || e.error) + '\n';
+  }
+});
+
+// Fetch hatalarını da yakala
+const _fetch = window.fetch;
+window.fetch = function(...args) {
+  return _fetch.apply(this, args)
+    .then(r => {
+      if (!r.ok) {
+        const kutu = document.getElementById('hata-kutusu');
+        if (kutu) {
+          kutu.style.display = 'block';
+          kutu.textContent += '⚠️ ' + args[0] + ' → HTTP ' + r.status + '\n';
+        }
+      }
+      return r;
+    })
+    .catch(err => {
+      const kutu = document.getElementById('hata-kutusu');
+      if (kutu) {
+        kutu.style.display = 'block';
+        kutu.textContent += '🔥 ' + err.message + '\n';
+      }
+      throw err;
+    });
+};
 
 /* ===================== YAPILANDIRMA ===================== */
 const API_ANAHTARI = '3a0b429fb0fe4def897486bc5309dafe';
@@ -982,7 +1035,8 @@ function puanTablosuCiz(tablo) {
     tr.style.cursor = 'pointer';
     tr.addEventListener('click', () => {
       const tid = parseInt(tr.dataset.takimId);
-      const takim = durum.takimlar.find(t => t.id === tid);
+      const takim = durum.takimlar.find(t => t.id === tid)
+        || { id: tid, name: tr.querySelector('.takim-hucresi')?.textContent?.trim() || 'Takım' };
       if (takim) {
         $$('.balon').forEach(b => {
           b.classList.remove('aktif');
